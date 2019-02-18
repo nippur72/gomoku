@@ -1,0 +1,124 @@
+
+scan_ptr = FREE_ZP_3   ; scanning video pointer in scanning routines
+scan_row = FREE_ZP_4   ; scanning row 
+scan_col = FREE_ZP_5   ; scanning column
+
+save_y     = FREE_ZP_23   ; temporary used to save the y register in some scanning routines
+save_x     = FREE_ZP_24   ; temporary used to save the x register in some scanning routines
+
+y_free_cell = FREE_ZP_29
+y_free_cell_1 = FREE_ZP_30
+y_free_cell_2 = FREE_ZP_28  
+
+const ZERO_SCORE = $30     ; minimum value for zero score ($30 = 48 = "0") 
+
+const TOP_LEFT_CORNER = [video_memory+[BOARD_START_ROW]*screen_cols+BOARD_START_COL];
+
+; =============
+; COMPUTER MOVE
+; =============
+
+; ============================================================================
+; Name: ComputerMove
+; Purpose: evaluate the board and play the best possible move
+; Input: none
+; Returns: winner=#NOUGHT if winning move, winner, wincol, winrow, winx, winy 
+;
+; Explanation of the "AI":
+;
+; First we block the pattern that lead to sure win/loss, in order:
+;  1) checks if computer has a "four" => if yes does the move (and wins)
+;  2) checks if human    has a "four" => if yes does the move (and blocks it)
+;  3) checks if computer has an "open 3" => if yes does the move (makes an open 4 and win in 2 round)
+;  4) checks if human    has an "open 3" => if yes does the move (and blocks it)
+;  5) create a map with scores of "open 2" patterns and pick resulting move
+; ============================================================================
+
+sub ComputerMove()
+   ; if first move play at center
+   ; if turns=#1 then 
+   ;    ld row, #(FRAME_START_ROW+BOARD_ROW_SIZE/2)
+   ;    ld col, #(FRAME_START_COL+BOARD_COL_SIZE/2)       
+   ;    jmp DoActualMove
+   ; end if
+
+   jsr Check4Both     : if best_score <> #ZERO_SCORE then goto DoComputerMove
+   jsr CheckOpen3Both : if best_score <> #ZERO_SCORE then goto DoComputerMove 
+      
+   jsr ZeroMap
+   jsr CheckTwoPatternsCumulative
+   jsr CheckOnePatternsCumulative
+   
+DoComputerMove:           
+   jsr PickBestMove    
+                     
+   // DoActualMove:           
+   ; do computer move
+   ld CRSRCOL, #COMPUTER_COLOR   
+   ld char, #NOUGHT
+   jsr putchar    
+
+   ; check if this is a winning move
+   ld mydot, #NOUGHT
+   call CheckWinningMove             
+            
+   jsr RestoreMap
+        
+end sub
+
+include "computer_four.lm"
+include "computer_open3.lm"
+include "computer_two.lm"
+include "computer_one.lm"
+
+sub ZeroMap() 
+    poke CRSRCOL, #CALC_COLOR
+    for row=#BOARD_START_ROW to #BOARD_END_ROW
+        for col=#BOARD_START_COL to #BOARD_END_COL            
+            jsr getchar            
+            if char=#GRID then
+               ld char, #ZERO_SCORE            
+               jsr putchar
+            end if
+        next
+    next
+end sub
+
+sub RestoreMap()
+    ld CRSRCOL, #CALC_COLOR        
+    for row=#BOARD_START_ROW to #BOARD_END_ROW
+        for col=#BOARD_START_COL to #BOARD_END_COL          
+          jsr getchar          
+          if char>=#ZERO_SCORE then
+             ld char, #GRID            
+             jsr putchar
+          end if
+       next
+    next
+end sub
+
+sub PickBestMove()
+    ld best_score, #0   
+    for row=#BOARD_START_ROW to #BOARD_END_ROW
+        for col=#BOARD_START_COL to #BOARD_END_COL            
+            jsr getchar            
+            if char>=best_score then
+               sta best_score
+               ld best_row, row
+               ld best_col, col              
+            end if
+        next
+    next
+    ld row, best_row
+    ld col, best_col            
+end sub
+
+; ======
+; TABLES
+; ======
+
+; E,SE,S,SW directions for 6-sized patterns 
+direction_6 byte 0,[screen_cols*0]+1,[screen_cols*0]+2,[screen_cols*0]+3,[screen_cols*0]+4,[screen_cols*0]+5
+            byte 0,[screen_cols*1]+1,[screen_cols*2]+2,[screen_cols*3]+3,[screen_cols*4]+4,[screen_cols*5]+5
+            byte 0,[screen_cols*1]+0,[screen_cols*2]+0,[screen_cols*3]+0,[screen_cols*4]+0,[screen_cols*5]+0
+            byte 0,[screen_cols*1]-1,[screen_cols*2]-2,[screen_cols*3]-3,[screen_cols*4]-4,[screen_cols*5]-5

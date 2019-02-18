@@ -1,0 +1,117 @@
+
+MACRO poke mem, const
+   lda #{2}
+   sta {1}
+END MACRO
+
+MACRO call mem
+   jsr {1}
+END MACRO
+
+MACRO ld "ya", const
+   lda #[[{2}] MOD 256]
+   ldy #[[{2}]/256]
+END MACRO
+
+MACRO ld "ya", mem
+   lda {1}
+   ldy {1}+1
+END MACRO
+
+MACRO ld mem, const
+   lda #{2}
+   sta {1}
+END MACRO
+
+MACRO ld mem, mem
+   lda {2}
+   sta {1}
+END MACRO
+
+MACRO add mem
+   clc
+   adc {1}
+END MACRO
+
+MACRO add const
+   clc
+   adc #{1}
+END MACRO
+
+MACRO add mem, const
+   clc
+   lda {1}
+   adc #{2}
+   sta {1}
+END MACRO
+
+MACRO add mem, mem
+   clc
+   lda {1}
+   adc {2}
+   sta {1}
+END MACRO
+
+MACRO sub mem
+   sec
+   sbc {1}
+END MACRO
+
+MACRO sub const
+   sec
+   sbc #{1}
+END MACRO
+
+MACRO sub mem, const
+   sec
+   lda {1}
+   sbc #{2}
+   sta {1}
+END MACRO
+
+MACRO sub mem, mem
+   sec
+   lda {1}
+   sbc {2}
+   sta {1}
+END MACRO
+
+MACRO ld16 mem, const
+   lda #[[{2}] MOD 256]
+   sta {1}
+   lda #[[{2}]/256]
+   sta {1}+1
+END MACRO
+
+MACRO ld16 mem, mem
+   lda {2}
+   sta {1}
+   lda {2}+1
+   sta {1}+1
+END MACRO
+
+MACRO add16 mem, const
+   lda {1}
+   clc
+   adc #[[{2}] MOD 256]
+   sta {1}
+   lda {1}+1
+   adc #[[{2}]/256]
+   sta {1}+1                    
+END MACRO
+
+MACRO add16 mem, mem
+   lda {1}
+   clc
+   adc {2}
+   sta {1}
+   lda {1}+1
+   adc {2}+1
+   sta {1}+1                    
+END MACRO
+
+MACRO inc16 mem
+   inc {1}
+   if zero then inc {1}+1
+END MACRO
+     

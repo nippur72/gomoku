@@ -1,0 +1,186 @@
+; ============
+; INTRO SCREEN
+; ============
+                
+#ifdef VIC20 || C64                                   
+scritta_gomoku_l1	byte 18,$6c+64,$62+64,$20,$6c+64,$62+64,$20,$20,$20,$62+64,$62+64,$20,$6c+64,$62+64,$20,$7b+64,$6c+64,$7b+64,$7b+64,$20,$7b+64,0
+scritta_gomoku_l2	byte 18,$61+64,$62+64,$7b+64,$61+64,$20,$61+64,$62+64,$7b+64,$61+64,$61+64,$61+64,$61+64,$20,$61+64,$7f+64,$7e+64,$20,$61+64,$20,$61+64,0
+scritta_gomoku_l3	byte 18,191,$62+64,$61+64,$7f+64,$62+64,$7e+64,$20,$20,$61+64,$61+64,$61+64,$7f+64,$62+64,$7e+64,$61+64,$7f+64,$7b+64,$7f+64,$62+64,$7e+64,146,0
+#endif
+
+#ifdef C16                                   
+scritta_gomoku_l1	byte $6c+64,$62+64,$20,$6c+64,$62+64,$20,$20,$20,$62+64,$62+64,$20,$6c+64,$62+64,$20,$7b+64,$6c+64,$7b+64,$7b+64,$20,$7b+64,0
+scritta_gomoku_l2	byte $61+64,$62+64,$7b+64,$61+64,$20,$61+64,$62+64,$7b+64,$61+64,$61+64,$61+64,$61+64,$20,$61+64,$7f+64,$7e+64,$20,$61+64,$20,$61+64,0
+scritta_gomoku_l3	byte 191,$62+64,$61+64,$7f+64,$62+64,$7e+64,$20,$20,$61+64,$61+64,$61+64,$7f+64,$62+64,$7e+64,$61+64,$7f+64,$7b+64,$7f+64,$62+64,$7e+64,146,0
+#endif
+
+;                       01234567890123456789012
+scritta_nippur1:  byte   "WRITTEN IN 2008 BY",0
+scritta_nippur2:  byte    "ANTONINO PORCINO",0
+scritta_use:      byte  "USE CURSOR KEYS AND",0
+scritta_space:    byte  "SPACE TO MAKE A MOVE",0
+scritta_press:    byte    "PRESS F1 TO START",0
+                           
+#ifdef VIC20                   
+   const scritta_gomoku_l1_pos = video_memory +  2 * screen_cols + 1
+   const scritta_gomoku_l2_pos = video_memory +  3 * screen_cols + 1
+   const scritta_gomoku_l3_pos = video_memory +  4 * screen_cols + 1
+   const scritta_nippur1_pos   = video_memory +  9 * screen_cols + 2
+   const scritta_nippur2_pos   = video_memory + 11 * screen_cols + 3
+   const scritta_use_pos       = video_memory + 15 * screen_cols + 1
+   const scritta_space_pos     = video_memory + 17 * screen_cols + 1
+   const scritta_press_pos     = video_memory + 21 * screen_cols + 2
+#endif
+
+#ifdef C64 || C16                       
+   const scritta_gomoku_l1_pos = video_memory +  2 * screen_cols + 10
+   const scritta_gomoku_l2_pos = video_memory +  3 * screen_cols + 10
+   const scritta_gomoku_l3_pos = video_memory +  4 * screen_cols + 10
+   const scritta_nippur1_pos = video_memory +  9 * screen_cols + 12-1
+   const scritta_nippur2_pos = video_memory + 11 * screen_cols + 13-1
+   const scritta_use_pos     = video_memory + 15 * screen_cols + 11-1
+   const scritta_space_pos   = video_memory + 17 * screen_cols + 11-1
+   const scritta_press_pos   = video_memory + 21 * screen_cols + 12-1
+#endif
+
+; universal rom PRINT routine
+; C64 and C16 require a GOHOME after
+;
+sub my_print()
+    jsr PRNSTR
+    #ifdef VIC20 || C64 then jsr GOHOME
+end sub
+
+; ==================================================================
+; Name: IntroScreen()
+; Purpose: prints the intro screen and waits for F1 (start game)
+; Returns: nothing
+; ==================================================================
+
+sub IntroScreen()
+   const KEY_F1 = 133
+
+   cls
+
+   #ifdef VIC20 then poke CRSRCOL, #2
+   #ifdef C64   then poke CRSRCOL, #8
+   #ifdef C16   then poke CRSRCOL, #72
+   print scritta_gomoku_l1
+   print scritta_gomoku_l2
+   print scritta_gomoku_l3
+
+   #ifdef VIC20 then poke CRSRCOL, #6
+   #ifdef C64   then poke CRSRCOL, #6
+   #ifdef C16   then poke CRSRCOL, #54
+   print scritta_nippur1
+   print scritta_nippur2
+
+   #ifdef VIC20 then poke CRSRCOL, #2
+   #ifdef C64   then poke CRSRCOL, #2
+   #ifdef C16   then poke CRSRCOL, #50
+   print scritta_use      
+   print scritta_space
+    
+   #ifdef VIC20 then poke CRSRCOL, #5
+   #ifdef C64   then poke CRSRCOL, #14
+   #ifdef C16   then poke CRSRCOL, #70
+   print scritta_press
+    
+   do
+      jsr GETIN
+      if a=#KEY_F1 then exit do    
+   loop while not zero        
+end sub
+
+; =============
+; ENDING SCREEN
+; =============
+
+#ifdef VIC20
+;                         0123456789012345678901
+scritta_vic20:    byte     "VIC*20 HAS WON IN",0
+scritta_you:      byte      "YOU HAVE WON IN",0
+scritta_moves:    byte            " MOVES",0
+scritta_pressany: byte       "PRESS ANY KEY",0
+
+scritta_vic20_pos    = video_memory +  9 * screen_cols + 2
+scritta_you_pos      = video_memory +  9 * screen_cols + 3
+scritta_moves_pos    = video_memory + 11 * screen_cols + 7
+scritta_pressany_pos = video_memory + 21 * screen_cols + 4
+#endif
+
+#ifdef C64
+;                         0123456789012345678901
+scritta_vic20:    byte      "C*64 HAS WON IN",0
+scritta_you:      byte      "YOU HAVE WON IN",0
+scritta_moves:    byte            " MOVES",0
+scritta_pressany: byte       "PRESS ANY KEY",0
+
+scritta_vic20_pos    = video_memory +  9 * screen_cols + 13-1
+scritta_you_pos      = video_memory +  9 * screen_cols + 13-1
+scritta_moves_pos    = video_memory + 11 * screen_cols + 17-1
+scritta_pressany_pos = video_memory + 21 * screen_cols + 14-1
+#endif
+
+#ifdef C16
+;                         0123456789012345678901
+scritta_vic20:    byte      "C*16 HAS WON IN",0
+scritta_you:      byte      "YOU HAVE WON IN",0
+scritta_moves:    byte            "MOVES",0
+scritta_moves2:   byte            " ",0
+scritta_pressany: byte       "PRESS ANY KEY",0
+
+scritta_vic20_pos    = video_memory +  9 * screen_cols + 13-1
+scritta_you_pos      = video_memory +  9 * screen_cols + 13-1
+scritta_moves_pos    = video_memory + 11 * screen_cols + 17-1
+scritta_moves2_pos   = video_memory + 11 * screen_cols + 17-2
+scritta_pressany_pos = video_memory + 21 * screen_cols + 14-1
+#endif
+
+; ==================================================================
+; Name: EndingScreen()
+; Purpose: prints the ending screen and waits for any key
+; Returns: nothing
+; ==================================================================
+
+sub EndingScreen()
+    cls
+        
+    #ifdef VIC20 then poke CRSRCOL, #6
+    #ifdef C64   then poke CRSRCOL, #6
+    #ifdef C16   then poke CRSRCOL, #54
+
+    if winner = #CROSS then
+       print scritta_you
+    else
+       print scritta_vic20
+    end if
+    
+    #ifdef VIC20 || C64
+       ld16 cursor_ptr, #scritta_moves_pos    
+       ldx turns
+       lda #0
+       jsr PRNINT
+       ld ya, #scritta_moves       
+       jsr my_print
+    #endif
+    
+    #ifdef C16
+       print scritta_moves2           
+       ldx turns
+       lda #0
+       jsr PRNINT
+       ld ya, #scritta_moves       
+       jsr my_print
+    #endif 
+    
+    #ifdef VIC20 then poke CRSRCOL, #5
+    #ifdef C64   then poke CRSRCOL, #14
+    #ifdef C16   then poke CRSRCOL, #70
+    print scritta_pressany
+    
+    do
+      jsr GETIN      
+    loop while zero        
+end sub
+

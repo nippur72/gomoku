@@ -1,0 +1,514 @@
+// TODO alternate graphics 
+// TODO separate map
+// TODO PET version
+// TODO two players mode
+// TODO myprint routine
+// TODO check/fine tune AI
+// TODO reduce search square
+// TODO readme get old xoomer page
+// TODO remove constants in computer_*.lm
+// TODO rename board/frame
+
+; ========================
+;         GOMOKU
+; ========================
+;
+; Written by Antonino Porcino 
+; (aka Nippur72) in May, 2008
+;
+; iz8bly@yahoo.it
+; http://xoomer.alice.it/aporcino
+;
+; Refreshed in 2019
+; https://github.com/nippur72/gomoku
+; nino.porcino@gmail.com
+;
+
+   include "vic20.lm"
+   ;include "c64.lm"
+   ;include "c16.lm"
+
+   include "macros.lm"
+
+   #ifdef VIC20 then org 4097
+   #ifdef C64   then org 2049
+   #ifdef C16   then org 4097
+
+   basic start compact
+      2008 sys {main}
+   basic end 	  
+
+; ========================
+;         CONSTANTS
+; ========================
+
+; used defined characters
+const NOUGHT         = $23   ; computer 
+const CROSS          = $24   ; human 
+const GRID           = $20   ; space
+const REVERSE_NOUGHT = $25   ; 
+const REVERSE_CROSS  = $26   ; reverses chars are used to emulate a cursor
+const REVERSE_GRID   = $0    ;
+
+; === various colors
+#ifdef VIC20
+   const HUMAN_COLOR     = 6
+   const COMPUTER_COLOR  = 2
+   const BOARD_COLOR     = 7
+   const INDICATOR_COLOR = 6
+   const HIGHLIGHT_1     = 0
+   const HIGHLIGHT_2     = 3
+   const CALC_COLOR      = 1
+#endif
+
+#ifdef C64
+   const HUMAN_COLOR     = 14
+   const COMPUTER_COLOR  = 2
+   const BOARD_COLOR     = 15
+   const INDICATOR_COLOR = 11
+   const HIGHLIGHT_1     = 0
+   const HIGHLIGHT_2     = 3
+   const CALC_COLOR      = 1  ; 4 for show
+#endif
+
+#ifdef C16
+   const HUMAN_COLOR     = 70
+   const COMPUTER_COLOR  = 50
+   const BOARD_COLOR     = 65
+   const INDICATOR_COLOR = 38
+   const HIGHLIGHT_1     = 35
+   const HIGHLIGHT_2     = 99
+   const CALC_COLOR      = 113
+#endif
+
+; === board size
+#ifdef VIC20
+   const FRAME_START_ROW = 0
+   const FRAME_START_COL = 0
+   const BOARD_ROW_SIZE  = 21
+   const BOARD_COL_SIZE  = 20
+   const FRAME_END_ROW   = FRAME_START_ROW+BOARD_ROW_SIZE+1
+   const FRAME_END_COL   = FRAME_START_COL+BOARD_COL_SIZE+1   
+#endif
+
+#ifdef C64 || C16
+   const FRAME_START_ROW = 1
+   const FRAME_START_COL = 9
+   const BOARD_ROW_SIZE  = 20
+   const BOARD_COL_SIZE  = 20
+   const FRAME_END_ROW   = FRAME_START_ROW+BOARD_ROW_SIZE+1
+   const FRAME_END_COL   = FRAME_START_COL+BOARD_COL_SIZE+1   
+#endif
+
+const BOARD_START_ROW = FRAME_START_ROW+1
+const BOARD_START_COL = FRAME_START_COL+1
+const BOARD_END_ROW   = FRAME_END_ROW-1
+const BOARD_END_COL   = FRAME_END_COL-1
+
+; =========
+; VARIABLES (all in zero page)
+; =========    
+
+; free zero page locations to use for variables
+const FREE_ZP_1 = 156
+const FREE_ZP_2 = 155
+const FREE_ZP_3 = 247
+const FREE_ZP_4 = 253   
+const FREE_ZP_5 = 254   
+const FREE_ZP_6 = 64
+const FREE_ZP_7 = 65
+const FREE_ZP_8 = 147
+const FREE_ZP_9 = 158
+const FREE_ZP_10 = 249
+const FREE_ZP_11 = 250
+const FREE_ZP_12 = 251
+const FREE_ZP_13 = 252
+const FREE_ZP_14 = 255
+const FREE_ZP_15 = 176
+const FREE_ZP_16 = 177
+const FREE_ZP_17 = 178
+const FREE_ZP_18 = 180
+const FREE_ZP_19 = 181
+const FREE_ZP_20 = 10 
+const FREE_ZP_21 = 12 
+const FREE_ZP_22 = 16 
+const FREE_ZP_23 = 187 
+const FREE_ZP_24 = 188 
+const FREE_ZP_25 = 19  
+const FREE_ZP_26 = 63  
+const FREE_ZP_27 = 66
+const FREE_ZP_28 = 118
+const FREE_ZP_29 = 151
+const FREE_ZP_30 = 152
+
+b = FREE_ZP_8
+
+turns  = FREE_ZP_9  ; counts turns in a match
+                
+row    = FREE_ZP_10 ; used by putchar() and getchar(). row and col are 
+col    = FREE_ZP_11 ; screen coordinates (0-based) and char is the character  
+char   = FREE_ZP_12 ; to write or read. putchar also writes the color from location CRSRCOL
+
+mydot  = FREE_ZP_13 ; the character of human or computer for scanning routines
+
+scan_count = FREE_ZP_14   ; number of dots found in a pattern in the scanning routines
+
+best_row   = FREE_ZP_15   ; best row found by pickbestmove()
+best_col   = FREE_ZP_16   ; best column found by pickbestmove()
+best_score = FREE_ZP_17   ; score of the best move found by pickbestmove()
+
+winrow     = FREE_ZP_18   ; starting row of winning pattern found by checkwinningmove() 
+wincol     = FREE_ZP_19   ; starting col of winning pattern found by checkwinningmove()
+winx       = FREE_ZP_20   ; column increment of winning pattern starting at wincol,winrow
+winy       = FREE_ZP_21   ; row increment of winning pattern starting at wincol,winrow 
+winner     = FREE_ZP_22   ; flag to indicate who wins (0=none yet, #NOUGHT=computer, #CROSS=human)
+
+; ===========
+; SUBROUTINES
+; ===========
+
+const KEY_RETURN = 13
+
+; main game loop
+
+sub main()	     
+   call InitVic
+   call IntroScreen   
+   call DrawBoard
+   call CenterHumanCursor         
+
+   ld turns, #0     ; turn counter 
+   ld winner, #0    ; none is winning
+
+   ; game loop
+   do
+      inc turns      
+      call HumanMove    : if winner is not zero then exit do      
+      call ComputerMove : if winner is not zero then exit do        
+   loop while zero
+
+   ; game ended, show winning pattern and wait key
+   do
+      call HighlightWinningMove
+      jsr GETIN       
+   loop while a<>#KEY_RETURN
+        
+   call EndingScreen
+      
+   jmp main                                   
+end sub 
+
+; initializes VIC registers
+
+sub InitVic()   
+   #ifdef VIC20
+      poke 36869, #255         ; definable characters at $1C00 (7168)
+      poke 36879, #29          ; green border, CROSS background                    
+   #endif
+
+   #ifdef C64
+      poke 53280, #5           ; green border
+      poke 53281, #1           ; CROSS background
+      poke 53272, #24          ; definable characters at $2000 (8192)          
+   #endif
+
+   #ifdef C16
+      poke 65305, #229         ; green border
+      poke 65301, #241         ; CROSS background       
+      poke 65299, #32          ; definable characters at $2000 (8192)
+      poke 65298, #0           ; definable characters in ram (VICE does not need this but YAPE does)
+      poke 1375, #1            ; redefine F1 key to match VIC20 and C64
+      poke 1383, #133          ; 
+   #endif
+end sub
+
+; ===============================
+; Name: DrawBoard
+; Purpose: draws the board square
+; Returns: nothing
+; ===============================
+
+sub DrawBoard()   
+   const CBOTTOM = $1f   
+   const CLEFT   = $21   
+   const CRIGHT  = $22   
+   const CTOP    = $27   
+   const CSE     = $1b  ; characters at corners
+   const CNE     = $1c  ; characters at corners
+   const CNW     = $1d  ; characters at corners
+   const CSW     = $1e  ; characters at corners
+
+   #ifdef C16 then poke CRSRCOL, #CALC_COLOR
+   cls
+
+   poke CRSRCOL, #BOARD_COLOR
+    	 
+   ; draws horizontal lines
+   for col=#FRAME_START_COL to #FRAME_END_COL
+      ld char, #CTOP    : ld row, #FRAME_START_ROW : call putchar
+      ld char, #CBOTTOM : ld row, #FRAME_END_ROW   : call putchar
+   next
+
+   ; draws vertical lines                    
+   for row=#FRAME_START_ROW to #FRAME_END_ROW
+      ld char, #CLEFT  : ld col, #FRAME_START_COL : call putchar
+      ld char, #CRIGHT : ld col, #FRAME_END_COL   : call putchar
+   next
+    
+   ; draws 4 corners        
+   ld char, #CSE : ld row, #FRAME_START_ROW : ld col, #FRAME_START_COL : call putchar    
+   ld char, #CSW : ld row, #FRAME_START_ROW : ld col, #FRAME_END_COL   : call putchar    
+   ld char, #CNE : ld row, #FRAME_END_ROW   : ld col, #FRAME_START_COL : call putchar    
+   ld char, #CNW : ld row, #FRAME_END_ROW   : ld col, #FRAME_END_COL   : call putchar                                      
+end sub
+
+include "human.lm"
+include "computer.lm"
+include "screens.lm"
+
+; ================
+; GENERIC ROUTINES
+; ================
+
+; ======================================================
+; Name: PutChar
+; Purpose: plots character at screen position 
+; Input: row, col: screen coordinates (0-based)
+;        char: the character to plot
+;        CRSRCOL: the color of the character
+; Returns: nothing
+; Note: uses precalculated table row_table split into
+;       high and low byte for convenience
+; ======================================================
+
+sub PutChar()
+   ; calculate pointer to video
+   ldx row 
+   lda row_table_lo,x : sta cursor_ptr
+   lda row_table_hi,x : sta cursor_ptr+1
+   ldy col
+               
+   ; writes character
+   lda char 
+   sta (cursor_ptr),y
+   
+   ; writes color by moving cursor_prt to color RAM
+   add cursor_ptr+1, #color_page_offset 
+   lda CRSRCOL
+   sta (cursor_ptr),y     
+end sub
+
+; ======================================================
+; Name: GetChar
+; Purpose: gets the character at screen position 
+; Input: row, col: screen coordinates (0-based)
+; Returns: the charatcer read in "char"
+; Note: uses precalculated table row_table split into
+;       high and low byte for convenience
+; ======================================================
+
+sub GetChar()
+   ; calculate pointer to video
+   ldx row 
+   lda row_table_lo,x : sta cursor_ptr
+   lda row_table_hi,x : sta cursor_ptr+1
+   ldy col
+   
+   ; reads character
+   lda (cursor_ptr),y
+   sta char
+end sub
+
+; these two tables are used to calculate on the fly 
+; the video memory location corresponding to row (0-screen_rows-1)
+; row_table_lo contains the low bytes, row_table_hi the high bytes
+
+row_table_lo: 
+   byte (video_memory+screen_cols* 0) MOD 256
+   byte (video_memory+screen_cols* 1) MOD 256
+   byte (video_memory+screen_cols* 2) MOD 256
+   byte (video_memory+screen_cols* 3) MOD 256
+   byte (video_memory+screen_cols* 4) MOD 256
+   byte (video_memory+screen_cols* 5) MOD 256
+   byte (video_memory+screen_cols* 6) MOD 256
+   byte (video_memory+screen_cols* 7) MOD 256
+   byte (video_memory+screen_cols* 8) MOD 256
+   byte (video_memory+screen_cols* 9) MOD 256
+   byte (video_memory+screen_cols*10) MOD 256
+   byte (video_memory+screen_cols*11) MOD 256
+   byte (video_memory+screen_cols*12) MOD 256
+   byte (video_memory+screen_cols*13) MOD 256
+   byte (video_memory+screen_cols*14) MOD 256
+   byte (video_memory+screen_cols*15) MOD 256
+   byte (video_memory+screen_cols*16) MOD 256
+   byte (video_memory+screen_cols*17) MOD 256
+   byte (video_memory+screen_cols*18) MOD 256
+   byte (video_memory+screen_cols*19) MOD 256
+   byte (video_memory+screen_cols*20) MOD 256
+   byte (video_memory+screen_cols*21) MOD 256
+   byte (video_memory+screen_cols*22) MOD 256
+   byte (video_memory+screen_cols*23) MOD 256
+   byte (video_memory+screen_cols*24) MOD 256   
+
+row_table_hi: 
+   byte (video_memory+screen_cols* 0) / 256
+   byte (video_memory+screen_cols* 1) / 256
+   byte (video_memory+screen_cols* 2) / 256
+   byte (video_memory+screen_cols* 3) / 256
+   byte (video_memory+screen_cols* 4) / 256
+   byte (video_memory+screen_cols* 5) / 256
+   byte (video_memory+screen_cols* 6) / 256
+   byte (video_memory+screen_cols* 7) / 256
+   byte (video_memory+screen_cols* 8) / 256
+   byte (video_memory+screen_cols* 9) / 256
+   byte (video_memory+screen_cols*10) / 256
+   byte (video_memory+screen_cols*11) / 256
+   byte (video_memory+screen_cols*12) / 256
+   byte (video_memory+screen_cols*13) / 256
+   byte (video_memory+screen_cols*14) / 256
+   byte (video_memory+screen_cols*15) / 256
+   byte (video_memory+screen_cols*16) / 256
+   byte (video_memory+screen_cols*17) / 256
+   byte (video_memory+screen_cols*18) / 256
+   byte (video_memory+screen_cols*19) / 256
+   byte (video_memory+screen_cols*20) / 256
+   byte (video_memory+screen_cols*21) / 256
+   byte (video_memory+screen_cols*22) / 256
+   byte (video_memory+screen_cols*23) / 256
+   byte (video_memory+screen_cols*24) / 256
+
+; ==================================================================
+; Name: CheckWinningMove()
+; Purpose: checks if the last move at (row,col) was a winning move
+; Input: mydot: the character being checked (#NOUGHT or #CROSS)
+;        row, col the position containing the move being checked
+; Returns: winner=#0 if none wins, else winner=#NOUGHT winner=#CROSS
+;          if winnder sets also: winrow, wincol, windirx, windiry
+; Note: check is done only on 4 directions instead of all 8 because
+;       the "CheckAlongDirection()" routine locates the head and 
+;       tail of the sequence making some direction redundant
+; ==================================================================
+
+savecol = FREE_ZP_6 
+saverow = FREE_ZP_7 
+
+sub CheckWinningMove()
+   ld saverow, row
+   ld savecol, col
+   
+   ldx #1   : ldy #0 : call CheckAlongDirection    ; horizontal
+   ldx #1   : ldy #1 : call CheckAlongDirection    ; diagonal \
+   ldx #0   : ldy #1 : call CheckAlongDirection    ; vertical
+   ldx #$FF : ldy #1 : call CheckAlongDirection    ; diagonal /
+end sub
+
+; ==================================================================
+; Name: CheckAlongDirection()
+;
+; Purpose: checks if the move at (savecol, saverow) is a winning move
+;          along the specified direction
+;
+; Input: mydot: the character being checked (#NOUGHT or #CROSS)
+;        row, col the position containing the move being checked
+;        X,Y: the direction increments along X and Y (-1, 0, +1)
+;
+; Returns: winner=#0 if none wins, else winner=#NOUGHT winner=#CROSS
+;          if winnder sets also: winrow, wincol, windirx, windiry
+;          winrow,wincol points to the "tail" (ending) character
+;
+; Note: the routine first goes all backward to locate the "head" 
+;       of the sequence, then it counts the number of unbroken 
+;       dots forward (must be 5).
+; ==================================================================
+
+dirx = FREE_ZP_25  
+diry = FREE_ZP_26
+
+sub CheckAlongDirection()
+   stx dirx
+   sty diry
+
+   ; start from specified location
+   ld col, savecol
+   ld row, saverow    
+
+   ; goes all backward finding the head     
+   do
+      sub col, dirx 
+      sub row, diry 
+      jsr getchar        
+   loop while char=mydot
+    
+   ; reset the dot counter
+   ld scan_count, #$FF  ; -1
+
+   ; goes forward to the tail    
+   do
+      inc scan_count
+      add col, dirx
+      add row, diry
+      jsr getchar        
+   loop while char=mydot
+
+   ; less than 5 dots, none wins                      
+   if scan_count < #5 then exit sub
+               
+   ; save winning move details           
+   ld winrow, row
+   ld wincol, col
+   ld winx, dirx
+   ld winy, diry
+   ld winner, mydot   
+end sub
+
+; ==================================================================
+; Name: HighlightWinningMove()
+; Purpose: highlights on the screen the winning move at (winrow,wincol) 
+;          direction (winx, winy) making it flash until RETURN is
+;          pressed on the keyboard. (winrow, wincol) is the ending character
+; Input: winner (the char of the winner), winrow, wincol, winx, winy
+; Returns: nothing
+; ==================================================================
+
+hcolor = FREE_ZP_27   ; flipping color when highlighting the winning pattern 
+
+sub HighlightWinningMove()         
+   ld CRSRCOL, hcolor
+   ld char, winner
+
+   ld row, winrow
+   ld col, wincol
+   ld b, #5
+   do
+      sub col, winx
+      sub row, winy
+      jsr putchar
+      dec b
+   loop while not zero
+   
+   ; invert color         
+   if hcolor=#HIGHLIGHT_1 then
+      ldx #HIGHLIGHT_2
+   else
+      ldx #HIGHLIGHT_1
+   end if  
+   stx hcolor
+    
+   ; a simple wait loop
+   ldy #160
+   do
+      ldx #0 : do : dex : loop while not zero
+      dey
+   loop while not zero                
+end sub
+
+#ifdef VIC20 then ECHO ($1c00 - endprogram)
+
+endprogram:       ; @@@
+
+#ifdef VIC20 then org 7168
+#ifdef C64   then org 8192
+#ifdef C16   then org 8192
+
+    include "chars.lm"
+

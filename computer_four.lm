@@ -1,0 +1,107 @@
+; =================================================================================
+; Name: Check4Both()
+; Purpose: check if computer and then human has a "four" (eg. "X.XXX")
+; Input: none
+; Returns: best_score <> #ZERO_SCORE if "four" found 
+;          row, col: coordinates to the free cell of the best "four" 
+; =================================================================================
+
+sub Check4Both()    
+   ; computer has a "four" ?
+   ld mydot, #NOUGHT    
+   jsr Accumulate4
+
+   ; if computer has an open four it's the best possible move
+   jsr PickBestMove : if best_score<>#ZERO_SCORE then exit sub
+
+   ; human has a "four" ?
+   ld mydot, #CROSS    
+   jsr Accumulate4
+   jsr PickBestMove
+      
+end sub
+
+; =======================================================================
+; Name: Accumulate4
+; Purpose: builds a map of scores for the "open 4" pattern
+; Input: mydot: the dot to check
+; Returns: a map with the score associated to the each free cell
+;          if map[cell] > ZERO_SCORE then score = map[cell] - ZERO_SCORE;
+;          that is score = ZERO_SCORE + 1 if one pattern found
+; =======================================================================
+
+sub Accumulate4()
+   jsr ZeroMap   
+
+   ; loads the scan pointer with top-left corner
+   ld16 scan_ptr, #TOP_LEFT_CORNER
+    
+   for scan_row=#BOARD_START_ROW to #BOARD_END_ROW
+      for scan_col=#BOARD_START_COL to #BOARD_END_COL       
+         ldx #[0*6] : jsr Accumulate4Direction   ; scans E 
+         ldx #[1*6] : jsr Accumulate4Direction   ; scans SE
+         ldx #[2*6] : jsr Accumulate4Direction   ; scans S
+         ldx #[3*6] : jsr Accumulate4Direction   ; scans SW         
+         inc16 scan_ptr
+      next
+      add16 scan_ptr, #screen_cols-BOARD_COL_SIZE
+   next
+	     
+end sub
+
+; ================================================================
+; Name: Accumulate4Direction
+; Purpose: scan along the direction specified and
+;          updates the score map if a "open 4" pattern is found
+;          cell[0..4] (5 in total)
+; Input: scan_ptr: screen pos of the cell being checked
+;        X the index within the direction_6[] table containing the
+;        screen offsets for the direction. 
+;        X = 0*6 scans E 
+;        X = 1*6 scans SE
+;        X = 2*6 scans S
+;        X = 3*6 scans SW         
+; Returns: updated map with scores
+; Note: direction_6 contains positions for 6 cells, 
+;       for the "open 4" only 5 are needed
+; ================================================================
+
+sub Accumulate4Direction()                          
+
+   ; resets the number of "mydots" found
+   ld scan_count, #0    
+    
+   ; scans cell[0..4] (5 total)
+   ld b, #5
+   do
+      ; loads y with offset
+      lda direction_6,x : tay
+
+      ; read the cell content    
+      lda (scan_ptr),y
+      if a=mydot then
+         inc scan_count   
+      else
+         ; if occupied cell (opponent or frame border) we stop early
+         if a<#ZERO_SCORE then exit sub    
+
+         ; otherwise is a free cell (the only in "open 4") and we save its position
+         sty save_y
+      end if      
+      inx
+      dec b
+   loop until zero
+    
+   ; here scan_count holds the number of mydots found
+   ; and y points to the (only) free cell 
+    
+   ; check for "four" patterns   
+   if scan_count<>#4 then exit sub
+    
+   ; update the map by increasing by one the score in the cell            
+   ldy save_y
+   lda (scan_ptr),y 
+   add #1
+   sta (scan_ptr),y    
+                          
+end sub

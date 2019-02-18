@@ -1,0 +1,123 @@
+; =============
+; 2019 strategy
+; =============
+
+; There are 6 patterns that can lead to an "open 3" pattern in the next round.
+; If we accumulate on the "-" cells of such patterns then there 
+; is chance that two crossed "open 3" can be made (leading to a sure win)
+
+;    ".-XX-." 
+;    ".X-X-." 
+;    ".XX--."    
+;    ".--XX." 
+;    ".-X-X." 
+;    ".X--X." 
+
+; How the patterns are derived from:  (*) unique, (r) repeated
+
+; ".XXX.." =>
+;    ".-XX-." *
+;    ".X-X-." *
+;    ".XX--." *   
+; "..XXX." =>
+;    ".--XX." *
+;    ".-X-X." *
+;    ".-XX-." r
+; ".X.XX." =>
+;    ".--XX." r
+;    ".X--X." *
+;    ".X-X-." r
+; ".XX.X." =>
+;    ".-X-X." r
+;    ".X--X." r
+;    ".XX--." r
+
+sub CheckTwoPatternsCumulative()
+    ld mydot, #CROSS  : jsr AccumulateTwo2019
+    ld mydot, #NOUGHT : jsr AccumulateTwo2019
+end sub
+
+sub AccumulateTwo2019()
+   ; loads the scan pointer with top-left corner
+   ld16 scan_ptr, #TOP_LEFT_CORNER
+    
+   for scan_row=#BOARD_START_ROW to #BOARD_END_ROW    
+      for scan_col=#BOARD_START_COL to #BOARD_END_COL       
+           ldx #[0*6]+1 : ldy #[0*6]+5 : jsr scan_two_direction2019   ; scans E 
+           ldx #[1*6]+1 : ldy #[1*6]+5 : jsr scan_two_direction2019   ; scans SE
+           ldx #[2*6]+1 : ldy #[2*6]+5 : jsr scan_two_direction2019   ; scans S
+           ldx #[3*6]+1 : ldy #[3*6]+5 : jsr scan_two_direction2019   ; scans SW         
+           inc16 scan_ptr
+      next
+      add16 scan_ptr, #screen_cols-BOARD_COL_SIZE
+   next
+end sub
+
+; ================================================================
+; Name:    scan_two_direction2019
+;
+; Purpose: scan along the direction specified and
+;          updates the score for all the 6 "open 2" patterns 
+;
+; Input:   scan_ptr: screen pos of the cell being checked
+;          X,Y index for direction_6[] table containing the scan direction
+;          X points to cell[1] because cell[0] is checked directly
+;          Y points to cell[5] to make speed up checking
+;
+; Returns: updated map with scores       
+;
+; cell[0..5] are checked (6 cells in total)
+; first are checked the cell[5], then cell[0] (must be free)
+; then inner cell[1..4]. If pattern is found only the inner
+; free cells are scored
+; ================================================================  
+
+sub scan_two_direction2019()
+   stx save_x
+   sty save_y   
+
+   ; verify ending cell[5] is empty
+   lda direction_6,y
+   tay
+   lda (scan_ptr),y 
+   if a<#ZERO_SCORE then exit sub             
+         
+   ; verify starting cell[0] is empty     
+   ldy #0
+   lda (scan_ptr),y
+   if a<#ZERO_SCORE then exit sub             
+   
+   ; counts how many mydots there are in the cells[1..4] (4 cells)
+   ld scan_count, #0 
+
+   ld y_free_cell, #0
+   ld b,#4
+   do
+      lda direction_6,x
+      tay
+      lda (scan_ptr),y
+      if a=mydot then
+         inc scan_count
+      else
+         if a<#ZERO_SCORE then exit sub
+         if y_free_cell is zero then 
+            sty y_free_cell
+         else            
+            sty y_free_cell_1
+         endif
+      end if      
+      inx
+      dec b        
+   loop until zero      
+
+   ; there must be two occupied cells and two free cells
+   if scan_count<>#2 then exit sub   
+    
+   ; update the map by increasing the score on the inner free cells
+
+   ; score inner free cell
+   ldy y_free_cell   : lda (scan_ptr),y : add #4 : sta (scan_ptr),y    
+   ldy y_free_cell_1 : lda (scan_ptr),y : add #4 : sta (scan_ptr),y    
+                          
+end sub
+

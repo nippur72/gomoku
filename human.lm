@@ -1,0 +1,103 @@
+; HumanMove() - handles human player move by keyboard
+;    reverse() - reverse what under cursor (emulates a cursor)
+
+player_row  = FREE_ZP_1  ; human player row cursor
+player_col  = FREE_ZP_2  ; human player column cursor
+
+sub CenterHumanCursor()
+   ; puts cursor in the middle of the board         
+   ld player_row, #(FRAME_START_ROW+BOARD_ROW_SIZE/2)
+   ld player_col, #(FRAME_START_COL+BOARD_COL_SIZE/2)    
+end sub
+
+; handles human player move by keyboard
+sub HumanMove()
+   const CURSOR_UP    = 145
+   const CURSOR_DOWN  = 17
+   const CURSOR_LEFT  = 157
+   const CURSOR_RIGHT = 29
+   const KEY_H        = 72
+   const KEY_SPACE    = 32
+
+   ld row, player_row    ; takes coordinates from last move (human)
+   ld col, player_col    ;    
+    
+	call reverse     ; reverses to display the "cursor"
+
+another_key:        
+   do : jsr GETIN : loop if a=#0       	 
+   
+   ; up
+   if a=#CURSOR_UP then
+      ldx row : if x = #BOARD_START_ROW then goto another_key       
+      jsr reverse : dec row : jsr reverse
+      jmp another_key 
+   end if
+   
+   ; down 
+   if a=#CURSOR_DOWN then
+      ldx row : if x = #BOARD_END_ROW then goto another_key       
+      jsr reverse : inc row : jsr reverse
+      jmp another_key 
+   end if
+   
+   ; left 
+   if a=#CURSOR_LEFT then
+      ldx col : if x = #BOARD_START_COL then goto another_key       
+      jsr reverse : dec col : jsr reverse
+      jmp another_key 
+   end if
+   
+   ; right
+   if a=#CURSOR_RIGHT then
+      ldx col : if x = #BOARD_END_COL then goto another_key       
+      jsr reverse : inc col : jsr reverse
+      jmp another_key 
+   end if
+   
+   ; "h" hint a move
+   if a=#KEY_H then
+      jsr reverse
+      jsr ComputerMove
+      ld winner, #0
+      ld col, best_col
+      ld row, best_row
+      jmp do_move
+   end if
+   
+   ; space
+   if a=#KEY_SPACE then
+      ; if cursor is on a free cell (cursor is reversed) then do the move
+      jsr getchar
+      if char=#REVERSE_GRID then goto do_move      
+   end if  
+   jmp another_key
+
+do_move:      
+   ld player_col, col
+   ld player_row, row
+   ld CRSRCOL, #HUMAN_COLOR   
+   ld char, #CROSS
+   jsr putchar   
+
+   ; check if this is a winning move
+   ld mydot, #CROSS
+   call CheckWinningMove                 
+
+end sub
+    
+; reverse what under cursor (emulates a cursor)        
+sub Reverse()
+    jsr getchar
+    lda char 
+    if a=#NOUGHT         then : ldx #REVERSE_NOUGHT : ldy #INDICATOR_COLOR : end if 
+    if a=#REVERSE_NOUGHT then : ldx #NOUGHT         : ldy #COMPUTER_COLOR  : end if 
+    if a=#CROSS          then : ldx #REVERSE_CROSS  : ldy #INDICATOR_COLOR : end if 
+    if a=#REVERSE_CROSS  then : ldx #CROSS          : ldy #HUMAN_COLOR     : end if 
+    if a=#GRID           then : ldx #REVERSE_GRID   : ldy #INDICATOR_COLOR : end if  
+    if a=#REVERSE_GRID   then : ldx #GRID           : ldy #CALC_COLOR      : end if 
+    sty CRSRCOL
+    stx char
+    jsr putchar 
+end sub
+
