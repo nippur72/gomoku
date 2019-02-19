@@ -22,25 +22,25 @@ scritta_space:    byte  "SPACE TO MAKE A MOVE",0
 scritta_press:    byte    "PRESS F1 TO START",0
                            
 #ifdef VIC20                   
-   const scritta_gomoku_l1_pos = video_memory +  2 * screen_cols + 1
-   const scritta_gomoku_l2_pos = video_memory +  3 * screen_cols + 1
-   const scritta_gomoku_l3_pos = video_memory +  4 * screen_cols + 1
-   const scritta_nippur1_pos   = video_memory +  9 * screen_cols + 2
-   const scritta_nippur2_pos   = video_memory + 11 * screen_cols + 3
-   const scritta_use_pos       = video_memory + 15 * screen_cols + 1
-   const scritta_space_pos     = video_memory + 17 * screen_cols + 1
-   const scritta_press_pos     = video_memory + 21 * screen_cols + 2
+   const scritta_gomoku_l1_pos = VIDEO_MEMORY +  2 * SCREEN_COLS + 1
+   const scritta_gomoku_l2_pos = VIDEO_MEMORY +  3 * SCREEN_COLS + 1
+   const scritta_gomoku_l3_pos = VIDEO_MEMORY +  4 * SCREEN_COLS + 1
+   const scritta_nippur1_pos   = VIDEO_MEMORY +  9 * SCREEN_COLS + 2
+   const scritta_nippur2_pos   = VIDEO_MEMORY + 11 * SCREEN_COLS + 3
+   const scritta_use_pos       = VIDEO_MEMORY + 15 * SCREEN_COLS + 1
+   const scritta_space_pos     = VIDEO_MEMORY + 17 * SCREEN_COLS + 1
+   const scritta_press_pos     = VIDEO_MEMORY + 21 * SCREEN_COLS + 2
 #endif
 
 #ifdef C64 || C16                       
-   const scritta_gomoku_l1_pos = video_memory +  2 * screen_cols + 10
-   const scritta_gomoku_l2_pos = video_memory +  3 * screen_cols + 10
-   const scritta_gomoku_l3_pos = video_memory +  4 * screen_cols + 10
-   const scritta_nippur1_pos = video_memory +  9 * screen_cols + 12-1
-   const scritta_nippur2_pos = video_memory + 11 * screen_cols + 13-1
-   const scritta_use_pos     = video_memory + 15 * screen_cols + 11-1
-   const scritta_space_pos   = video_memory + 17 * screen_cols + 11-1
-   const scritta_press_pos   = video_memory + 21 * screen_cols + 12-1
+   const scritta_gomoku_l1_pos = VIDEO_MEMORY +  2 * SCREEN_COLS + 10
+   const scritta_gomoku_l2_pos = VIDEO_MEMORY +  3 * SCREEN_COLS + 10
+   const scritta_gomoku_l3_pos = VIDEO_MEMORY +  4 * SCREEN_COLS + 10
+   const scritta_nippur1_pos   = VIDEO_MEMORY +  9 * SCREEN_COLS + 12-1
+   const scritta_nippur2_pos   = VIDEO_MEMORY + 11 * SCREEN_COLS + 13-1
+   const scritta_use_pos       = VIDEO_MEMORY + 15 * SCREEN_COLS + 11-1
+   const scritta_space_pos     = VIDEO_MEMORY + 17 * SCREEN_COLS + 11-1
+   const scritta_press_pos     = VIDEO_MEMORY + 21 * SCREEN_COLS + 12-1
 #endif
 
 ; universal rom PRINT routine
@@ -62,28 +62,28 @@ sub IntroScreen()
 
    cls
 
-   #ifdef VIC20 then poke CRSRCOL, #2
-   #ifdef C64   then poke CRSRCOL, #8
-   #ifdef C16   then poke CRSRCOL, #72
+   #ifdef VIC20 then color #2
+   #ifdef C64   then color #8
+   #ifdef C16   then color #72
    print scritta_gomoku_l1
    print scritta_gomoku_l2
    print scritta_gomoku_l3
 
-   #ifdef VIC20 then poke CRSRCOL, #6
-   #ifdef C64   then poke CRSRCOL, #6
-   #ifdef C16   then poke CRSRCOL, #54
+   #ifdef VIC20 then color #6
+   #ifdef C64   then color #6
+   #ifdef C16   then color #54
    print scritta_nippur1
    print scritta_nippur2
 
-   #ifdef VIC20 then poke CRSRCOL, #2
-   #ifdef C64   then poke CRSRCOL, #2
-   #ifdef C16   then poke CRSRCOL, #50
+   #ifdef VIC20 then color #2
+   #ifdef C64   then color #2
+   #ifdef C16   then color #50
    print scritta_use      
    print scritta_space
     
-   #ifdef VIC20 then poke CRSRCOL, #5
-   #ifdef C64   then poke CRSRCOL, #14
-   #ifdef C16   then poke CRSRCOL, #70
+   #ifdef VIC20 then color #5
+   #ifdef C64   then color #14
+   #ifdef C16   then color #70
    print scritta_press
     
    do
@@ -103,10 +103,10 @@ scritta_you:      byte      "YOU HAVE WON IN",0
 scritta_moves:    byte            " MOVES",0
 scritta_pressany: byte       "PRESS ANY KEY",0
 
-scritta_vic20_pos    = video_memory +  9 * screen_cols + 2
-scritta_you_pos      = video_memory +  9 * screen_cols + 3
-scritta_moves_pos    = video_memory + 11 * screen_cols + 7
-scritta_pressany_pos = video_memory + 21 * screen_cols + 4
+scritta_vic20_pos    = VIDEO_MEMORY +  9 * SCREEN_COLS + 2
+scritta_you_pos      = VIDEO_MEMORY +  9 * SCREEN_COLS + 3
+scritta_moves_pos    = VIDEO_MEMORY + 11 * SCREEN_COLS + 7
+scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 4
 #endif
 
 #ifdef C64
@@ -116,10 +116,10 @@ scritta_you:      byte      "YOU HAVE WON IN",0
 scritta_moves:    byte            " MOVES",0
 scritta_pressany: byte       "PRESS ANY KEY",0
 
-scritta_vic20_pos    = video_memory +  9 * screen_cols + 13-1
-scritta_you_pos      = video_memory +  9 * screen_cols + 13-1
-scritta_moves_pos    = video_memory + 11 * screen_cols + 17-1
-scritta_pressany_pos = video_memory + 21 * screen_cols + 14-1
+scritta_vic20_pos    = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
+scritta_you_pos      = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
+scritta_moves_pos    = VIDEO_MEMORY + 11 * SCREEN_COLS + 17-1
+scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 14-1
 #endif
 
 #ifdef C16
@@ -130,11 +130,11 @@ scritta_moves:    byte            "MOVES",0
 scritta_moves2:   byte            " ",0
 scritta_pressany: byte       "PRESS ANY KEY",0
 
-scritta_vic20_pos    = video_memory +  9 * screen_cols + 13-1
-scritta_you_pos      = video_memory +  9 * screen_cols + 13-1
-scritta_moves_pos    = video_memory + 11 * screen_cols + 17-1
-scritta_moves2_pos   = video_memory + 11 * screen_cols + 17-2
-scritta_pressany_pos = video_memory + 21 * screen_cols + 14-1
+scritta_vic20_pos    = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
+scritta_you_pos      = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
+scritta_moves_pos    = VIDEO_MEMORY + 11 * SCREEN_COLS + 17-1
+scritta_moves2_pos   = VIDEO_MEMORY + 11 * SCREEN_COLS + 17-2
+scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 14-1
 #endif
 
 ; ==================================================================
@@ -144,43 +144,43 @@ scritta_pressany_pos = video_memory + 21 * screen_cols + 14-1
 ; ==================================================================
 
 sub EndingScreen()
-    cls
+   cls
         
-    #ifdef VIC20 then poke CRSRCOL, #6
-    #ifdef C64   then poke CRSRCOL, #6
-    #ifdef C16   then poke CRSRCOL, #54
+   #ifdef VIC20 then color #6
+   #ifdef C64   then color #6
+   #ifdef C16   then color #54
 
-    if winner = #CROSS then
-       print scritta_you
-    else
-       print scritta_vic20
-    end if
+   if winner = #CROSS then
+      print scritta_you
+   else
+      print scritta_vic20
+   end if
     
-    #ifdef VIC20 || C64
-       ld16 cursor_ptr, #scritta_moves_pos    
-       ldx turns
-       lda #0
-       jsr PRNINT
-       ld ya, #scritta_moves       
-       jsr my_print
-    #endif
+   #ifdef VIC20 || C64
+      ld16 cursor_ptr, #scritta_moves_pos    
+      ldx turns
+      lda #0
+      jsr PRNINT
+      ld ya, #scritta_moves       
+      jsr my_print
+   #endif
     
-    #ifdef C16
-       print scritta_moves2           
-       ldx turns
-       lda #0
-       jsr PRNINT
-       ld ya, #scritta_moves       
-       jsr my_print
-    #endif 
+   #ifdef C16
+      print scritta_moves2           
+      ldx turns
+      lda #0
+      jsr PRNINT
+      ld ya, #scritta_moves       
+      jsr my_print
+   #endif 
     
-    #ifdef VIC20 then poke CRSRCOL, #5
-    #ifdef C64   then poke CRSRCOL, #14
-    #ifdef C16   then poke CRSRCOL, #70
-    print scritta_pressany
+   #ifdef VIC20 then color #5
+   #ifdef C64   then color #14
+   #ifdef C16   then color #70
+   print scritta_pressany
     
-    do
-      jsr GETIN      
-    loop while zero        
+   do
+   jsr GETIN      
+   loop while zero        
 end sub
 

@@ -1,13 +1,12 @@
-// TODO alternate graphics 
-// TODO separate map
-// TODO PET version
 // TODO two players mode
-// TODO myprint routine
 // TODO check/fine tune AI
 // TODO reduce search square
 // TODO readme get old xoomer page
 // TODO remove constants in computer_*.lm
-// TODO rename board/frame
+// TODO alternate graphics 
+// TODO separate map
+// TODO PET version
+// TODO myprint routine
 
 ; ========================
 ;         GOMOKU
@@ -24,8 +23,8 @@
 ; nino.porcino@gmail.com
 ;
 
-   include "vic20.lm"
-   ;include "c64.lm"
+   ;include "vic20.lm"
+   include "c64.lm"
    ;include "c16.lm"
 
    include "macros.lm"
@@ -52,53 +51,44 @@ const REVERSE_GRID   = $0    ;
 
 ; === various colors
 #ifdef VIC20
-   const HUMAN_COLOR     = 6
-   const COMPUTER_COLOR  = 2
-   const BOARD_COLOR     = 7
-   const INDICATOR_COLOR = 6
-   const HIGHLIGHT_1     = 0
-   const HIGHLIGHT_2     = 3
-   const CALC_COLOR      = 1
+   const HUMAN_COLOR     = COLOR_BLUE
+   const COMPUTER_COLOR  = COLOR_RED
+   const FRAME_COLOR     = COLOR_YELLOW
+   const CURSOR_COLOR    = COLOR_BLUE
+   const HIGHLIGHT_1     = COLOR_BLACK
+   const HIGHLIGHT_2     = COLOR_CYAN
+   const BACK_COLOR      = COLOR_WHITE
 #endif
 
 #ifdef C64
    const HUMAN_COLOR     = 14
    const COMPUTER_COLOR  = 2
-   const BOARD_COLOR     = 15
-   const INDICATOR_COLOR = 11
+   const FRAME_COLOR     = 15
+   const CURSOR_COLOR    = 11
    const HIGHLIGHT_1     = 0
    const HIGHLIGHT_2     = 3
-   const CALC_COLOR      = 1  ; 4 for show
+   const BACK_COLOR      = 1  ; 4 for show
 #endif
 
 #ifdef C16
    const HUMAN_COLOR     = 70
    const COMPUTER_COLOR  = 50
-   const BOARD_COLOR     = 65
-   const INDICATOR_COLOR = 38
+   const FRAME_COLOR     = 65
+   const CURSOR_COLOR    = 38
    const HIGHLIGHT_1     = 35
    const HIGHLIGHT_2     = 99
-   const CALC_COLOR      = 113
+   const BACK_COLOR      = 113
 #endif
 
 ; === board size
-#ifdef VIC20
-   const FRAME_START_ROW = 0
-   const FRAME_START_COL = 0
-   const BOARD_ROW_SIZE  = 21
-   const BOARD_COL_SIZE  = 20
-   const FRAME_END_ROW   = FRAME_START_ROW+BOARD_ROW_SIZE+1
-   const FRAME_END_COL   = FRAME_START_COL+BOARD_COL_SIZE+1   
-#endif
 
-#ifdef C64 || C16
-   const FRAME_START_ROW = 1
-   const FRAME_START_COL = 9
-   const BOARD_ROW_SIZE  = 20
-   const BOARD_COL_SIZE  = 20
-   const FRAME_END_ROW   = FRAME_START_ROW+BOARD_ROW_SIZE+1
-   const FRAME_END_COL   = FRAME_START_COL+BOARD_COL_SIZE+1   
-#endif
+const BOARD_ROW_SIZE = 16
+const BOARD_COL_SIZE = 16
+
+const FRAME_START_ROW = [SCREEN_ROWS-[BOARD_ROW_SIZE+2]]/2 
+const FRAME_START_COL = [SCREEN_COLS-[BOARD_COL_SIZE+2]]/2
+const FRAME_END_ROW   = FRAME_START_ROW+BOARD_ROW_SIZE+1
+const FRAME_END_COL   = FRAME_START_COL+BOARD_COL_SIZE+1   
 
 const BOARD_START_ROW = FRAME_START_ROW+1
 const BOARD_START_COL = FRAME_START_COL+1
@@ -139,7 +129,7 @@ const FREE_ZP_26 = 63
 const FREE_ZP_27 = 66
 const FREE_ZP_28 = 118
 const FREE_ZP_29 = 151
-const FREE_ZP_30 = 152
+const FREE_ZP_30 = 148
 
 b = FREE_ZP_8
 
@@ -203,18 +193,18 @@ end sub
 sub InitVic()   
    #ifdef VIC20
       poke 36869, #255         ; definable characters at $1C00 (7168)
-      poke 36879, #29          ; green border, CROSS background                    
+      poke 36879, #25         ;29; green border, white background                    
    #endif
 
    #ifdef C64
-      poke 53280, #5           ; green border
-      poke 53281, #1           ; CROSS background
+      poke 53280, #1           ; white border
+      poke 53281, #1           ; white background
       poke 53272, #24          ; definable characters at $2000 (8192)          
    #endif
 
    #ifdef C16
-      poke 65305, #229         ; green border
-      poke 65301, #241         ; CROSS background       
+      poke 65305, #241         ; white border
+      poke 65301, #241         ; white background       
       poke 65299, #32          ; definable characters at $2000 (8192)
       poke 65298, #0           ; definable characters in ram (VICE does not need this but YAPE does)
       poke 1375, #1            ; redefine F1 key to match VIC20 and C64
@@ -238,10 +228,10 @@ sub DrawBoard()
    const CNW     = $1d  ; characters at corners
    const CSW     = $1e  ; characters at corners
 
-   #ifdef C16 then poke CRSRCOL, #CALC_COLOR
+   #ifdef C16 then color #BACK_COLOR
    cls
 
-   poke CRSRCOL, #BOARD_COLOR
+   color #FRAME_COLOR
     	 
    ; draws horizontal lines
    for col=#FRAME_START_COL to #FRAME_END_COL
@@ -281,7 +271,7 @@ include "screens.lm"
 ;       high and low byte for convenience
 ; ======================================================
 
-sub PutChar()
+sub PutChar()   
    ; calculate pointer to video
    ldx row 
    lda row_table_lo,x : sta cursor_ptr
@@ -324,58 +314,58 @@ end sub
 ; row_table_lo contains the low bytes, row_table_hi the high bytes
 
 row_table_lo: 
-   byte (video_memory+screen_cols* 0) MOD 256
-   byte (video_memory+screen_cols* 1) MOD 256
-   byte (video_memory+screen_cols* 2) MOD 256
-   byte (video_memory+screen_cols* 3) MOD 256
-   byte (video_memory+screen_cols* 4) MOD 256
-   byte (video_memory+screen_cols* 5) MOD 256
-   byte (video_memory+screen_cols* 6) MOD 256
-   byte (video_memory+screen_cols* 7) MOD 256
-   byte (video_memory+screen_cols* 8) MOD 256
-   byte (video_memory+screen_cols* 9) MOD 256
-   byte (video_memory+screen_cols*10) MOD 256
-   byte (video_memory+screen_cols*11) MOD 256
-   byte (video_memory+screen_cols*12) MOD 256
-   byte (video_memory+screen_cols*13) MOD 256
-   byte (video_memory+screen_cols*14) MOD 256
-   byte (video_memory+screen_cols*15) MOD 256
-   byte (video_memory+screen_cols*16) MOD 256
-   byte (video_memory+screen_cols*17) MOD 256
-   byte (video_memory+screen_cols*18) MOD 256
-   byte (video_memory+screen_cols*19) MOD 256
-   byte (video_memory+screen_cols*20) MOD 256
-   byte (video_memory+screen_cols*21) MOD 256
-   byte (video_memory+screen_cols*22) MOD 256
-   byte (video_memory+screen_cols*23) MOD 256
-   byte (video_memory+screen_cols*24) MOD 256   
+   byte (VIDEO_MEMORY+SCREEN_COLS* 0) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 1) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 2) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 3) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 4) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 5) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 6) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 7) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 8) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 9) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*10) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*11) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*12) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*13) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*14) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*15) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*16) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*17) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*18) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*19) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*20) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*21) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*22) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*23) MOD 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*24) MOD 256   
 
 row_table_hi: 
-   byte (video_memory+screen_cols* 0) / 256
-   byte (video_memory+screen_cols* 1) / 256
-   byte (video_memory+screen_cols* 2) / 256
-   byte (video_memory+screen_cols* 3) / 256
-   byte (video_memory+screen_cols* 4) / 256
-   byte (video_memory+screen_cols* 5) / 256
-   byte (video_memory+screen_cols* 6) / 256
-   byte (video_memory+screen_cols* 7) / 256
-   byte (video_memory+screen_cols* 8) / 256
-   byte (video_memory+screen_cols* 9) / 256
-   byte (video_memory+screen_cols*10) / 256
-   byte (video_memory+screen_cols*11) / 256
-   byte (video_memory+screen_cols*12) / 256
-   byte (video_memory+screen_cols*13) / 256
-   byte (video_memory+screen_cols*14) / 256
-   byte (video_memory+screen_cols*15) / 256
-   byte (video_memory+screen_cols*16) / 256
-   byte (video_memory+screen_cols*17) / 256
-   byte (video_memory+screen_cols*18) / 256
-   byte (video_memory+screen_cols*19) / 256
-   byte (video_memory+screen_cols*20) / 256
-   byte (video_memory+screen_cols*21) / 256
-   byte (video_memory+screen_cols*22) / 256
-   byte (video_memory+screen_cols*23) / 256
-   byte (video_memory+screen_cols*24) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 0) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 1) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 2) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 3) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 4) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 5) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 6) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 7) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 8) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS* 9) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*10) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*11) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*12) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*13) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*14) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*15) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*16) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*17) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*18) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*19) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*20) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*21) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*22) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*23) / 256
+   byte (VIDEO_MEMORY+SCREEN_COLS*24) / 256
 
 ; ==================================================================
 ; Name: CheckWinningMove()
@@ -473,7 +463,7 @@ end sub
 hcolor = FREE_ZP_27   ; flipping color when highlighting the winning pattern 
 
 sub HighlightWinningMove()         
-   ld CRSRCOL, hcolor
+   color hcolor
    ld char, winner
 
    ld row, winrow

@@ -12,7 +12,7 @@ y_free_cell_2 = FREE_ZP_28
 
 const ZERO_SCORE = $30     ; minimum value for zero score ($30 = 48 = "0") 
 
-const TOP_LEFT_CORNER = [video_memory+[BOARD_START_ROW]*screen_cols+BOARD_START_COL];
+const TOP_LEFT_CORNER = [VIDEO_MEMORY+[BOARD_START_ROW]*SCREEN_COLS+BOARD_START_COL];
 
 ; =============
 ; COMPUTER MOVE
@@ -54,7 +54,7 @@ DoComputerMove:
                      
    // DoActualMove:           
    ; do computer move
-   ld CRSRCOL, #COMPUTER_COLOR   
+   color #COMPUTER_COLOR   
    ld char, #NOUGHT
    jsr putchar    
 
@@ -72,7 +72,7 @@ include "computer_two.lm"
 include "computer_one.lm"
 
 sub ZeroMap() 
-    poke CRSRCOL, #CALC_COLOR
+    color #BACK_COLOR
     for row=#BOARD_START_ROW to #BOARD_END_ROW
         for col=#BOARD_START_COL to #BOARD_END_COL            
             jsr getchar            
@@ -85,7 +85,7 @@ sub ZeroMap()
 end sub
 
 sub RestoreMap()
-    ld CRSRCOL, #CALC_COLOR        
+    color #BACK_COLOR        
     for row=#BOARD_START_ROW to #BOARD_END_ROW
         for col=#BOARD_START_COL to #BOARD_END_COL          
           jsr getchar          
@@ -118,7 +118,7 @@ end sub
 ; ======
 
 ; E,SE,S,SW directions for 6-sized patterns 
-direction_6 byte 0,[screen_cols*0]+1,[screen_cols*0]+2,[screen_cols*0]+3,[screen_cols*0]+4,[screen_cols*0]+5
-            byte 0,[screen_cols*1]+1,[screen_cols*2]+2,[screen_cols*3]+3,[screen_cols*4]+4,[screen_cols*5]+5
-            byte 0,[screen_cols*1]+0,[screen_cols*2]+0,[screen_cols*3]+0,[screen_cols*4]+0,[screen_cols*5]+0
-            byte 0,[screen_cols*1]-1,[screen_cols*2]-2,[screen_cols*3]-3,[screen_cols*4]-4,[screen_cols*5]-5
+direction_6 byte 0,[SCREEN_COLS*0]+1,[SCREEN_COLS*0]+2,[SCREEN_COLS*0]+3,[SCREEN_COLS*0]+4,[SCREEN_COLS*0]+5
+            byte 0,[SCREEN_COLS*1]+1,[SCREEN_COLS*2]+2,[SCREEN_COLS*3]+3,[SCREEN_COLS*4]+4,[SCREEN_COLS*5]+5
+            byte 0,[SCREEN_COLS*1]+0,[SCREEN_COLS*2]+0,[SCREEN_COLS*3]+0,[SCREEN_COLS*4]+0,[SCREEN_COLS*5]+0
+            byte 0,[SCREEN_COLS*1]-1,[SCREEN_COLS*2]-2,[SCREEN_COLS*3]-3,[SCREEN_COLS*4]-4,[SCREEN_COLS*5]-5

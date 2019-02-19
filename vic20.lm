@@ -21,22 +21,22 @@ CRSRCOL = 646
 
 ; color costants
 
-color_black   = #0
-color_white   = #1
-color_red     = #2
-color_cyan    = #3
-color_magenta = #4
-color_green   = #5
-color_blue    = #6
-color_yellow  = #7
+COLOR_BLACK   = 0
+COLOR_WHITE   = 1
+COLOR_RED     = 2
+COLOR_CYAN    = 3
+COLOR_MAGENTA = 4
+COLOR_GREEN   = 5
+COLOR_BLUE    = 6
+COLOR_YELLOW  = 7
 
 ; screen costants
 
-screen_cols  = #22
-screen_nrows = #23
-video_memory = #7680
-color_memory = #38400
-color_page_offset = ((color_memory - video_memory) / 256)
+SCREEN_COLS  = 22
+SCREEN_ROWS  = 23
+VIDEO_MEMORY = 7680
+COLOR_MEMORY = 38400
+COLOR_PAGE_OFFSET = ((COLOR_MEMORY - VIDEO_MEMORY) / 256)
 
 ; useful macros
 

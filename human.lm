@@ -76,7 +76,7 @@ another_key:
 do_move:      
    ld player_col, col
    ld player_row, row
-   ld CRSRCOL, #HUMAN_COLOR   
+   color #HUMAN_COLOR   
    ld char, #CROSS
    jsr putchar   
 
@@ -90,12 +90,12 @@ end sub
 sub Reverse()
     jsr getchar
     lda char 
-    if a=#NOUGHT         then : ldx #REVERSE_NOUGHT : ldy #INDICATOR_COLOR : end if 
-    if a=#REVERSE_NOUGHT then : ldx #NOUGHT         : ldy #COMPUTER_COLOR  : end if 
-    if a=#CROSS          then : ldx #REVERSE_CROSS  : ldy #INDICATOR_COLOR : end if 
-    if a=#REVERSE_CROSS  then : ldx #CROSS          : ldy #HUMAN_COLOR     : end if 
-    if a=#GRID           then : ldx #REVERSE_GRID   : ldy #INDICATOR_COLOR : end if  
-    if a=#REVERSE_GRID   then : ldx #GRID           : ldy #CALC_COLOR      : end if 
+    if a=#NOUGHT         then : ldx #REVERSE_NOUGHT : ldy #CURSOR_COLOR   : end if 
+    if a=#REVERSE_NOUGHT then : ldx #NOUGHT         : ldy #COMPUTER_COLOR : end if 
+    if a=#CROSS          then : ldx #REVERSE_CROSS  : ldy #CURSOR_COLOR   : end if 
+    if a=#REVERSE_CROSS  then : ldx #CROSS          : ldy #HUMAN_COLOR    : end if 
+    if a=#GRID           then : ldx #REVERSE_GRID   : ldy #CURSOR_COLOR   : end if  
+    if a=#REVERSE_GRID   then : ldx #GRID           : ldy #BACK_COLOR     : end if 
     sty CRSRCOL
     stx char
     jsr putchar 

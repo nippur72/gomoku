@@ -44,9 +44,9 @@ sub Accumulate4()
          ldx #[3*6] : jsr Accumulate4Direction   ; scans SW         
          inc16 scan_ptr
       next
-      add16 scan_ptr, #screen_cols-BOARD_COL_SIZE
+      add16 scan_ptr, #SCREEN_COLS-BOARD_COL_SIZE
    next
-	     
+     
 end sub
 
 ; ================================================================

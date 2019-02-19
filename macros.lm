@@ -115,3 +115,12 @@ MACRO inc16 mem
    if zero then inc {1}+1
 END MACRO
      
+MACRO color const
+   lda #{1}
+   sta CRSRCOL
+END MACRO
+
+MACRO color mem
+   lda {1}
+   sta CRSRCOL
+END MACRO
