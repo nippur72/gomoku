@@ -3,17 +3,6 @@ sub CheckOnePatternsCumulative()
     ld mydot, #NOUGHT : jsr AccumulateOne2019
 end sub
 
-/*
-sub CheckOnePatterns()
-    jsr ZeroMap
-
-    ld mydot, #CROSS  : jsr AccumulateOne2019
-    ld mydot, #NOUGHT : jsr AccumulateOne2019
-
-    jsr PickBestMove        
-end sub
-*/
-
 sub AccumulateOne2019()
    ; loads the scan pointer with top-left corner
    ld16 scan_ptr, #TOP_LEFT_CORNER

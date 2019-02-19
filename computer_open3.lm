@@ -10,15 +10,13 @@
 sub CheckOpen3Both()
 
    ; computer has a "open 3" ?
-   ld mydot, #NOUGHT
-   jsr ZeroMap
+   ld mydot, #NOUGHT   
    jsr AccumulateOpen3
    jsr PickBestMove   
    if best_score<>#ZERO_SCORE then exit sub
     
    ; human has a "open 3" ?
-   ld mydot, #CROSS
-   jsr ZeroMap
+   ld mydot, #CROSS   
    jsr AccumulateOpen3
    jsr PickBestMove   
       

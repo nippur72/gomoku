@@ -42,10 +42,10 @@ sub ComputerMove()
    ;    jmp DoActualMove
    ; end if
 
+   jsr ZeroMap
    jsr Check4Both     : if best_score <> #ZERO_SCORE then goto DoComputerMove
    jsr CheckOpen3Both : if best_score <> #ZERO_SCORE then goto DoComputerMove 
-      
-   jsr ZeroMap
+         
    jsr CheckTwoPatternsCumulative
    jsr CheckOnePatternsCumulative
    
@@ -76,7 +76,7 @@ sub ZeroMap()
     for row=#BOARD_START_ROW to #BOARD_END_ROW
         for col=#BOARD_START_COL to #BOARD_END_COL            
             jsr getchar            
-            if char=#GRID then
+            if a=#GRID then
                ld char, #ZERO_SCORE            
                jsr putchar
             end if
@@ -89,7 +89,7 @@ sub RestoreMap()
     for row=#BOARD_START_ROW to #BOARD_END_ROW
         for col=#BOARD_START_COL to #BOARD_END_COL          
           jsr getchar          
-          if char>=#ZERO_SCORE then
+          if a>=#ZERO_SCORE then
              ld char, #GRID            
              jsr putchar
           end if
@@ -102,7 +102,7 @@ sub PickBestMove()
     for row=#BOARD_START_ROW to #BOARD_END_ROW
         for col=#BOARD_START_COL to #BOARD_END_COL            
             jsr getchar            
-            if char>=best_score then
+            if a>=best_score then
                sta best_score
                ld best_row, row
                ld best_col, col              

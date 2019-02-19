@@ -1,6 +1,5 @@
 // TODO two players mode
 // TODO check/fine tune AI
-// TODO reduce search square
 // TODO readme get old xoomer page
 // TODO remove constants in computer_*.lm
 // TODO alternate graphics 
@@ -23,8 +22,8 @@
 ; nino.porcino@gmail.com
 ;
 
-   ;include "vic20.lm"
-   include "c64.lm"
+   include "vic20.lm"
+   ;include "c64.lm"
    ;include "c16.lm"
 
    include "macros.lm"
@@ -292,7 +291,7 @@ end sub
 ; Name: GetChar
 ; Purpose: gets the character at screen position 
 ; Input: row, col: screen coordinates (0-based)
-; Returns: the charatcer read in "char"
+; Returns: the charatcer read in A
 ; Note: uses precalculated table row_table split into
 ;       high and low byte for convenience
 ; ======================================================
@@ -305,8 +304,7 @@ sub GetChar()
    ldy col
    
    ; reads character
-   lda (cursor_ptr),y
-   sta char
+   lda (cursor_ptr),y   
 end sub
 
 ; these two tables are used to calculate on the fly 
@@ -427,7 +425,7 @@ sub CheckAlongDirection()
       sub col, dirx 
       sub row, diry 
       jsr getchar        
-   loop while char=mydot
+   loop while a=mydot
     
    ; reset the dot counter
    ld scan_count, #$FF  ; -1
@@ -438,7 +436,7 @@ sub CheckAlongDirection()
       add col, dirx
       add row, diry
       jsr getchar        
-   loop while char=mydot
+   loop while a=mydot
 
    ; less than 5 dots, none wins                      
    if scan_count < #5 then exit sub

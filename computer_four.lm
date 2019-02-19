@@ -30,8 +30,7 @@ end sub
 ;          that is score = ZERO_SCORE + 1 if one pattern found
 ; =======================================================================
 
-sub Accumulate4()
-   jsr ZeroMap   
+sub Accumulate4()   
 
    ; loads the scan pointer with top-left corner
    ld16 scan_ptr, #TOP_LEFT_CORNER
