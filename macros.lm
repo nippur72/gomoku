@@ -116,11 +116,9 @@ MACRO inc16 mem
 END MACRO
      
 MACRO color const
-   lda #{1}
-   sta CRSRCOL
+   ld CRSRCOL, #{1}   
 END MACRO
 
 MACRO color mem
-   lda {1}
-   sta CRSRCOL
+   ld CRSRCOL, {1}
 END MACRO
