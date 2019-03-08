@@ -30,6 +30,16 @@ Also the C64 and the C16 have different video chip registers, so I had to find a
 
 Program variables share the same zero page assignment -- it was quite difficult to find an assignment not causing conflict with the O.S. on all three machines (C64 and VIC20 are very similar in this regard).
 
+## How to build the executables
+
+Requires:
+
+- DASM (v2.20.10)
+- Asmproc (v0.1.15)
+- Nodejs (any version)
+
+From the command line prompt (Windows) launch the `t.bat` batch file.
+
 ## How to play
 
 Press F1 to start and then simply use the cursor keys to move on the board and space bar to place the `X`.
