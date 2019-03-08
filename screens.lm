@@ -180,7 +180,7 @@ sub EndingScreen()
    print scritta_pressany
     
    do
-   jsr GETIN      
+      jsr GETIN      
    loop while zero        
 end sub
 
