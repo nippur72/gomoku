@@ -1,4 +1,5 @@
-// TODO two players mode
+// TODO check no winners full board
+// TODO two players mode?
 // TODO check/fine tune AI
 // TODO readme get old xoomer page
 // TODO remove constants in computer_*.lm
@@ -22,19 +23,19 @@
 ; nino.porcino@gmail.com
 ;
 
-   include "vic20.lm"
-   ;include "c64.lm"
-   ;include "c16.lm"
+#ifdef VIC20 then include "vic20.lm"
+#ifdef C64   then include "c64.lm"
+#ifdef C16   then include "c16.lm"
 
-   include "macros.lm"
+include "macros.lm"
 
-   #ifdef VIC20 then org 4097
-   #ifdef C64   then org 2049
-   #ifdef C16   then org 4097
+#ifdef VIC20 then org 4097
+#ifdef C64   then org 2049
+#ifdef C16   then org 4097
 
-   basic start compact
-      2008 sys {main}
-   basic end 	  
+basic start
+   2008 sys {main}
+basic end 	  
 
 ; ========================
 ;         CONSTANTS
@@ -84,6 +85,8 @@ const REVERSE_GRID   = $0    ;
 const BOARD_ROW_SIZE = 16
 const BOARD_COL_SIZE = 16
 
+const BOARD_NUL_CELLS = BOARD_ROW_SIZE * BOARD_COL_SIZE
+
 const FRAME_START_ROW = [SCREEN_ROWS-[BOARD_ROW_SIZE+2]]/2 
 const FRAME_START_COL = [SCREEN_COLS-[BOARD_COL_SIZE+2]]/2
 const FRAME_END_ROW   = FRAME_START_ROW+BOARD_ROW_SIZE+1
@@ -130,27 +133,27 @@ const FREE_ZP_28 = 118
 const FREE_ZP_29 = 151
 const FREE_ZP_30 = 148
 
-b = FREE_ZP_8
+const b = FREE_ZP_8
 
-turns  = FREE_ZP_9  ; counts turns in a match
+const turns  = FREE_ZP_9  ; counts turns in a match
                 
-row    = FREE_ZP_10 ; used by putchar() and getchar(). row and col are 
-col    = FREE_ZP_11 ; screen coordinates (0-based) and char is the character  
-char   = FREE_ZP_12 ; to write or read. putchar also writes the color from location CRSRCOL
+const row    = FREE_ZP_10 ; used by putchar() and getchar(). row and col are 
+const col    = FREE_ZP_11 ; screen coordinates (0-based) and char is the character  
+const char   = FREE_ZP_12 ; to write or read. putchar also writes the color from location CRSRCOL
 
-mydot  = FREE_ZP_13 ; the character of human or computer for scanning routines
+const mydot  = FREE_ZP_13 ; the character of human or computer for scanning routines
 
-scan_count = FREE_ZP_14   ; number of dots found in a pattern in the scanning routines
+const scan_count = FREE_ZP_14   ; number of dots found in a pattern in the scanning routines
 
-best_row   = FREE_ZP_15   ; best row found by pickbestmove()
-best_col   = FREE_ZP_16   ; best column found by pickbestmove()
-best_score = FREE_ZP_17   ; score of the best move found by pickbestmove()
+const best_row   = FREE_ZP_15   ; best row found by pickbestmove()
+const best_col   = FREE_ZP_16   ; best column found by pickbestmove()
+const best_score = FREE_ZP_17   ; score of the best move found by pickbestmove()
 
-winrow     = FREE_ZP_18   ; starting row of winning pattern found by checkwinningmove() 
-wincol     = FREE_ZP_19   ; starting col of winning pattern found by checkwinningmove()
-winx       = FREE_ZP_20   ; column increment of winning pattern starting at wincol,winrow
-winy       = FREE_ZP_21   ; row increment of winning pattern starting at wincol,winrow 
-winner     = FREE_ZP_22   ; flag to indicate who wins (0=none yet, #NOUGHT=computer, #CROSS=human)
+const winrow     = FREE_ZP_18   ; starting row of winning pattern found by checkwinningmove() 
+const wincol     = FREE_ZP_19   ; starting col of winning pattern found by checkwinningmove()
+const winx       = FREE_ZP_20   ; column increment of winning pattern starting at wincol,winrow
+const winy       = FREE_ZP_21   ; row increment of winning pattern starting at wincol,winrow 
+const winner     = FREE_ZP_22   ; flag to indicate who wins (0=none yet, #NOUGHT=computer, #CROSS=human)
 
 ; ===========
 ; SUBROUTINES
@@ -377,8 +380,8 @@ row_table_hi:
 ;       tail of the sequence making some direction redundant
 ; ==================================================================
 
-savecol = FREE_ZP_6 
-saverow = FREE_ZP_7 
+const savecol = FREE_ZP_6 
+const saverow = FREE_ZP_7 
 
 sub CheckWinningMove()
    ld saverow, row
@@ -409,10 +412,10 @@ end sub
 ;       dots forward (must be 5).
 ; ==================================================================
 
-dirx = FREE_ZP_25  
-diry = FREE_ZP_26
+const dirx = FREE_ZP_25  
+const diry = FREE_ZP_26
 
-sub CheckAlongDirection()
+sub CheckAlongDirection()   
    stx dirx
    sty diry
 
@@ -458,7 +461,7 @@ end sub
 ; Returns: nothing
 ; ==================================================================
 
-hcolor = FREE_ZP_27   ; flipping color when highlighting the winning pattern 
+const hcolor = FREE_ZP_27   ; flipping color when highlighting the winning pattern 
 
 sub HighlightWinningMove()         
    color hcolor

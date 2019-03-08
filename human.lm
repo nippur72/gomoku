@@ -1,5 +1,5 @@
-player_row  = FREE_ZP_1  ; human player row cursor
-player_col  = FREE_ZP_2  ; human player column cursor
+const player_row  = FREE_ZP_1  ; human player row cursor
+const player_col  = FREE_ZP_2  ; human player column cursor
 
 sub CenterHumanCursor()
    ; puts cursor in the middle of the board         
