@@ -28,6 +28,8 @@
 #ifdef C16   then include "c16.lm"
 
 include "macros.lm"
+include "macros_16.lm"
+include "macros_gomoku.lm"
 
 #ifdef VIC20 then org 4097
 #ifdef C64   then org 2049

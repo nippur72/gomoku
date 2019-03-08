@@ -1,3 +1,6 @@
+;
+; Aliases 
+;
 
 MACRO poke mem, const
    lda #{2}
@@ -8,9 +11,98 @@ MACRO call mem
    jsr {1}
 END MACRO
 
+macro shl
+   asl {0}
+end macro
+
+macro shr
+   lsr {0}
+end macro          
+
+macro ret
+   rts
+end macro
+
+macro push "a"           
+   pha
+end macro     
+
+macro pop "a"
+   pla
+end macro     
+
+macro or mem
+   ora {1}
+end macro
+
+macro or const
+   ora #{1}
+end macro
+
+;
+; Easy loads
+;
+
+macro ld "a", mem
+    lda {2}
+end macro
+
+macro ld "a", const
+    lda #{2}
+end macro
+
+macro ld "a", indirect
+    ldy #0
+    lda {2},y
+end macro
+
+macro ld "x", mem
+    ldx {2}
+end macro
+
+macro ld "x", const
+    ldx #{2}
+end macro
+
+macro ld "y", mem
+    ldy {2}
+end macro
+
+macro ld "y", const
+    ldy #{2}
+end macro
+
+macro ld mem, "a"
+    sta {1}
+end macro
+
+macro ld mem, "x"
+    stx {1}
+end macro
+
+macro ld mem, "y"
+    sty {1}
+end macro
+
+macro ld "a", "x"
+    txa
+end macro
+
+macro ld "a", "y"
+    tya
+end macro
+
+macro ld "x", "a"
+    tax
+end macro
+
+macro ld "y", "a"
+    tay
+end macro
+
 MACRO ld "ya", const
-   lda #[[{2}] MOD 256]
-   ldy #[[{2}]/256]
+   lda #(({2}) MOD 256)
+   ldy #(({2})/256)
 END MACRO
 
 MACRO ld "ya", mem
@@ -18,15 +110,24 @@ MACRO ld "ya", mem
    ldy {1}+1
 END MACRO
 
-MACRO ld mem, const
-   lda #{2}
-   sta {1}
-END MACRO
+macro ld mem, mem
+    lda {2}    
+    sta {1}
+end macro
 
-MACRO ld mem, mem
-   lda {2}
-   sta {1}
-END MACRO
+macro ld mem, const
+    lda #{2}
+    sta {1}
+end macro
+
+macro ld indirect, "a"
+    ldy #0
+    sta {1},y
+end macro
+
+;
+; Easy add and sub
+;
 
 MACRO add mem
    clc
@@ -74,51 +175,4 @@ MACRO sub mem, mem
    lda {1}
    sbc {2}
    sta {1}
-END MACRO
-
-MACRO ld16 mem, const
-   lda #[[{2}] MOD 256]
-   sta {1}
-   lda #[[{2}]/256]
-   sta {1}+1
-END MACRO
-
-MACRO ld16 mem, mem
-   lda {2}
-   sta {1}
-   lda {2}+1
-   sta {1}+1
-END MACRO
-
-MACRO add16 mem, const
-   lda {1}
-   clc
-   adc #[[{2}] MOD 256]
-   sta {1}
-   lda {1}+1
-   adc #[[{2}]/256]
-   sta {1}+1                    
-END MACRO
-
-MACRO add16 mem, mem
-   lda {1}
-   clc
-   adc {2}
-   sta {1}
-   lda {1}+1
-   adc {2}+1
-   sta {1}+1                    
-END MACRO
-
-MACRO inc16 mem
-   inc {1}
-   if zero then inc {1}+1
-END MACRO
-     
-MACRO color const
-   ld CRSRCOL, #{1}   
-END MACRO
-
-MACRO color mem
-   ld CRSRCOL, {1}
 END MACRO

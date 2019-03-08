@@ -1,0 +1,7 @@
+MACRO color const
+   ld CRSRCOL, #{1}   
+END MACRO
+
+MACRO color mem
+   ld CRSRCOL, {1}
+END MACRO
