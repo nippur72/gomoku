@@ -1,42 +1,40 @@
     processor 6502
 
-VIC20 = 1 ; compiler costant
-
 ; Kernal entries
 
-GETIN   = $ffe4     ; getin rom kernel routine
-SCNKEY  = $ff9f     ; scnkey rom kernel routine
-CLRSCN  = $e55f     ; clear screen
-PRNSTR  = $cb1e     ; print string in A/Y, 0 terminated
-GOHOME  = $e581     ; go home
-PRNINT  = $ddcd     ; print integer in A/X
+const GETIN   = $ffe4     ; getin rom kernel routine
+const SCNKEY  = $ff9f     ; scnkey rom kernel routine
+const CLRSCN  = $e55f     ; clear screen
+const PRNSTR  = $cb1e     ; print string in A/Y, 0 terminated
+const GOHOME  = $e581     ; go home
+const PRNINT  = $ddcd     ; print integer in A/X
 
 ; zero page
 
-cursor_ptr = 209
-jiffy_clock = 162
-CRSRCOL = 646
+const cursor_ptr = 209
+const jiffy_clock = 162
+const CRSRCOL = 646
 
 ; registers
 
 ; color costants
 
-COLOR_BLACK   = 0
-COLOR_WHITE   = 1
-COLOR_RED     = 2
-COLOR_CYAN    = 3
-COLOR_MAGENTA = 4
-COLOR_GREEN   = 5
-COLOR_BLUE    = 6
-COLOR_YELLOW  = 7
+const COLOR_BLACK   = 0
+const COLOR_WHITE   = 1
+const COLOR_RED     = 2
+const COLOR_CYAN    = 3
+const COLOR_MAGENTA = 4
+const COLOR_GREEN   = 5
+const COLOR_BLUE    = 6
+const COLOR_YELLOW  = 7
 
 ; screen costants
 
-SCREEN_COLS  = 22
-SCREEN_ROWS  = 23
-VIDEO_MEMORY = 7680
-COLOR_MEMORY = 38400
-COLOR_PAGE_OFFSET = ((COLOR_MEMORY - VIDEO_MEMORY) / 256)
+const SCREEN_COLS  = 22
+const SCREEN_ROWS  = 23
+const VIDEO_MEMORY = 7680
+const COLOR_MEMORY = 38400
+const COLOR_PAGE_OFFSET = ((COLOR_MEMORY - VIDEO_MEMORY) / 256)
 
 ; useful macros
 

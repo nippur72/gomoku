@@ -1,41 +1,42 @@
     processor 6502
 
-C64 = 1 ; compiler costant
-
 ; Kernal entries 
 
-GETIN   = $ffe4     ; getin rom kernel routine
-CLRSCN  = $e544     ; clear screen
-PRNSTR  = $ab1e     ; print string in A/Y, 0 terminated
-GOHOME  = $e566     ; go home
-PRNINT  = $bdcd     ; print integer in A/X
+const GETIN   = $ffe4     ; getin rom kernel routine
+const CLRSCN  = $e544     ; clear screen
+const PRNSTR  = $ab1e     ; print string in A/Y, 0 terminated
+const GOHOME  = $e566     ; go home
+const PRNINT  = $bdcd     ; print integer in A/X
 
 ; zero page
 
-cursor_ptr = 209
-jiffy_clock = 162
-CRSRCOL = 646
+const cursor_ptr = 209
+const jiffy_clock = 162
+const CRSRCOL = 646
 
 ; registers
 
 ; color costants
 
-color_black   = 0
-color_white   = 1
-color_red     = 2
-color_cyan    = 3
-color_magenta = 4
-color_green   = 5
-color_blue    = 6
-color_yellow  = 7
+const color_black   = 0
+const color_white   = 1
+const color_red     = 2
+const color_cyan    = 3
+const color_magenta = 4
+const color_green   = 5
+const color_blue    = 6
+const color_yellow  = 7
 
 ; screen costants
 
-SCREEN_COLS  = 40
-SCREEN_ROWS  = 25
-VIDEO_MEMORY = 1024
-COLOR_MEMORY = 55296
-COLOR_PAGE_OFFSET = ((color_memory - VIDEO_MEMORY) / 256)
+const SCREEN_COLS  = 40
+const SCREEN_ROWS  = 25
+const VIDEO_MEMORY = 1024
+const COLOR_MEMORY = 55296
+const COLOR_PAGE_OFFSET = ((color_memory - VIDEO_MEMORY) / 256)
+const BASIC_RAM   = 2049
+const RASTER      = $d012
+const ROMCHAR     = 32768
 
 ; useful macros
     
