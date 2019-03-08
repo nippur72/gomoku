@@ -1,0 +1,427 @@
+; computermove() - computer's move, calls all the pattern scanning routines
+; zeromap() - turns all GRID characters in zeroscore charatcers 
+; restoremap() - turns all score characters in GRID characters (opposed to zeroscore)
+; accumulatefour() - matches "four" patterns in all the board
+; AccumulateOpen4Direction() - matches a "four" patterns in a single direction  
+; accumulatethree() - matches "three" patterns in all the board
+; scan_three_direction() - matches a "three" patterns in a single direction
+; accumulatetwo() - matches "two" patterns in all the board
+; scan_two_direction() - matches a "two" patterns in a single direction
+; accumulatetwoh() - matches "twoh" patterns in all the board
+; scan_twoh_direction() - matches a "twoh" patterns in a single direction
+; erasearound() - erases the score of free cells that does not have nearby characters
+
+scan_ptr = FREE_ZP_3   ; scanning video pointer in scanning routines
+scan_row = FREE_ZP_4   ; scanning row 
+scan_col = FREE_ZP_5   ; scanning column
+
+save_y     = FREE_ZP_23   ; temporary used to save the y register in some scanning routines
+save_x     = FREE_ZP_24   ; temporary used to save the x register in some scanning routines
+
+y_free_cell = FREE_ZP_29
+y_free_cell_1 = FREE_ZP_30
+y_free_cell_2 = FREE_ZP_28  
+
+const ZERO_SCORE = $30     ; minimum value for zero score ($30 = 48 = "0") 
+
+const TOP_LEFT_CORNER = [VIDEO_MEMORY+[BOARD_START_ROW]*SCREEN_COLS+BOARD_START_COL];
+
+; =============
+; COMPUTER MOVE
+; =============
+
+; ============================================================================
+; Name: ComputerMove
+; Purpose: evaluate the board and play the best possible move
+; Input: none
+; Returns: winner=#NOUGHT if winning move, winner, wincol, winrow, winx, winy 
+;
+; Explanation of the "AI":
+;
+; First we block the pattern that lead to sure win/loss, in order:
+;  1) checks if computer has a "four" => if yes does the move (and wins)
+;  2) checks if human    has a "four" => if yes does the move (and blocks it)
+;  3) checks if computer has an "open 3" => if yes does the move (makes an open 4 and win in 2 round)
+;  4) checks if human    has an "open 3" => if yes does the move (and blocks it)
+; ============================================================================
+
+sub ComputerMove()
+   ; if first move play at center
+   ; if turns=#1 then 
+   ;    ld row, #(FRAME_START_ROW+BOARD_ROW_SIZE/2)
+   ;    ld col, #(FRAME_START_COL+BOARD_COL_SIZE/2)       
+   ;    jmp DoActualMove
+   ; end if
+
+   jsr Check4Both  
+   if best_score <> #ZERO_SCORE then 
+      ; poke 53280, #0  ; black
+      jmp DoComputerMove
+   end if
+
+   jsr CheckOpen3Both
+   if best_score <> #ZERO_SCORE then 
+      ;poke 53280, #1  ; white
+      jmp DoComputerMove ; v2008 was: DoAccumulateMove 
+   end if 
+   
+   jsr ZeroMap
+   jsr CheckTwoPatternsCumulative
+   jsr CheckOnePatternsCumulative
+   jsr PickBestMove
+   if best_score <> #ZERO_SCORE then 
+      ;poke 53280, #2   ; red
+      jmp DoComputerMove
+   end if               
+
+   /*
+   jsr CheckTwoPatterns
+   if best_score <> #ZERO_SCORE then 
+      poke 53280, #2   ; red
+      jmp DoComputerMove
+   end if               
+   
+   jsr CheckOnePatterns
+   if best_score <> #ZERO_SCORE then 
+      poke 53280, #3  ; cyan
+      jmp DoComputerMove
+   end if               
+   */
+
+   poke 53280, #4  ; purple
+
+   /*
+   ; no threating patterns found, does arithmetic moves
+   
+   jsr ZeroMap    
+   ld mydot, #NOUGHT : jsr Accumulate
+   ld mydot, #CROSS  : jsr Accumulate
+   jsr EraseAround    
+   */
+
+DoComputerMove:        
+   // waitkey
+   jsr PickBestMove 
+   ;poke 53280, #5
+                     
+DoActualMove:           
+   ; do computer move
+   ld CRSRCOL, #COMPUTER_COLOR   
+   ld char, #NOUGHT
+   jsr putchar    
+
+   ; check if this is a winning move
+   ld mydot, #NOUGHT
+   call CheckWinningMove             
+            
+   jsr RestoreMap
+   exit sub
+    
+DoAccumulateMove:    
+   ld mydot, #NOUGHT : jsr Accumulate
+   ld mydot, #CROSS  : jsr Accumulate                  
+   jmp DoComputerMove
+        
+end sub
+
+include "computer_four.lm"
+include "computer_open3.lm"
+include "computer_two.lm"
+include "computer_one.lm"
+
+sub ZeroMap() 
+    poke CRSRCOL, #BACK_COLOR
+    for row=#BOARD_START_ROW to #BOARD_END_ROW
+        for col=#BOARD_START_COL to #BOARD_END_COL            
+            jsr getchar            
+            if a=#GRID then
+               ld char, #ZERO_SCORE            
+               jsr putchar
+            end if
+        next
+    next
+end sub
+
+sub RestoreMap()
+    ld CRSRCOL, #BACK_COLOR        
+    for row=#BOARD_START_ROW to #BOARD_END_ROW
+        for col=#BOARD_START_COL to #BOARD_END_COL          
+          jsr getchar          
+          if a>=#ZERO_SCORE then
+             ld char, #GRID            
+             jsr putchar
+          end if
+       next
+    next
+end sub
+
+
+/*
+; different accumulate
+sub Accumulate()
+    ; loads the scan pointer with top-left corner
+    ld16 scan_ptr, #[VIDEO_MEMORY+[BOARD_START_ROW]*SCREEN_COLS+BOARD_START_COL]
+    
+    ld scan_row, #BOARD_START_ROW
+    do
+       ld scan_col, #BOARD_START_COL
+       do
+           ldx #[0*6] : jsr scan_math_direction   ; scans E 
+           ldx #[1*6] : jsr scan_math_direction   ; scans SE
+           ldx #[2*6] : jsr scan_math_direction   ; scans S
+           ldx #[3*6] : jsr scan_math_direction   ; scans SW
+         
+           inc16 scan_ptr
+           inc scan_col
+           lda scan_col            
+       loop while a<>#FRAME_END_COL
+       add16 scan_ptr, #SCREEN_COLS-BOARD_COL_SIZE
+       inc scan_row
+       lda scan_row        
+    loop while a<>#FRAME_END_ROW    
+end sub
+                   
+
+sub scan_math_direction()
+    stx save_x          
+             
+    ; check if the 5 cells are unbroken            
+    ld b,#5
+    do
+        lda direction_6,x
+        tay
+        lda (scan_ptr),y
+        if a<>mydot then
+           if a<#ZERO_SCORE then exit sub           
+        end if      
+        inx
+        dec b        
+    loop until zero
+    
+    ; here scan_count holds the number of mydots              
+    ; do the accumulate process
+    ldx save_x            
+    ld b,#5
+    do
+        lda direction_6,x
+        tay
+        lda (scan_ptr),y
+        if a>=#ZERO_SCORE then 
+           clc
+           adc #1
+           sta (scan_ptr),y         
+        end if      
+        inx
+        dec b        
+    loop until zero                          
+end sub
+*/
+
+
+sub Accumulate()
+    ; splits in two scans because a sigle one would cross the 256 bytes in C64 screen
+    
+    ;
+    ; part one
+    ;
+    
+    ; loads the scan pointer with top-left corner
+    ld16 scan_ptr, #[VIDEO_MEMORY+[BOARD_START_ROW-4]*SCREEN_COLS+BOARD_START_COL-4]
+    
+    for scan_row=#BOARD_START_ROW to #BOARD_END_ROW
+       for scan_col=#BOARD_START_COL to #BOARD_END_COL
+           ldy #[[SCREEN_COLS*4]+4]
+           lda (scan_ptr),y
+           if a==mydot then                          
+              ldx #[0*4] : jsr scan_unbroken_direction    ; scan all 8 cardinal directions 
+              ldx #[1*4] : jsr scan_unbroken_direction    ;
+              ldx #[2*4] : jsr scan_unbroken_direction    ; 
+              ldx #[3*4] : jsr scan_unbroken_direction    ;
+              ldx #[4*4] : jsr scan_unbroken_direction    ;
+           end if 
+           inc16 scan_ptr
+       next
+       add16 scan_ptr, #SCREEN_COLS-BOARD_COL_SIZE
+    next
+
+    ;
+    ; part two
+    ;
+
+    ; loads the scan pointer with top-left corner
+    ld16 scan_ptr, #[VIDEO_MEMORY+[BOARD_START_ROW]*SCREEN_COLS+BOARD_START_COL-4]
+    
+    for scan_row=#BOARD_START_ROW to #BOARD_END_ROW
+       for scan_col=#BOARD_START_COL to #BOARD_END_COL
+           ldy #[[SCREEN_COLS*0]+4]
+           lda (scan_ptr),y
+           if a==mydot then                          
+              ldx #[5*4] : jsr scan_unbroken_direction    ;
+              ldx #[6*4] : jsr scan_unbroken_direction    ; 
+              ldx #[7*4] : jsr scan_unbroken_direction    ;
+           end if
+           inc16 scan_ptr
+       next       
+       add16 scan_ptr, #SCREEN_COLS-BOARD_COL_SIZE
+    next
+    
+end sub
+
+; scans 4 consecutive dots on the specified direction
+; from video page pointed by (scan_ptr) and if not broken
+; returns the number of mydots in x
+; if broken by opponent's dots or border, returns x=0
+
+sub scan_unbroken_direction()          
+    stx save_x   ; saves x register        
+               
+    ; scan to see if the row is broken
+    ; and in case it exists                 
+    
+    ld b,#3                  
+    do
+      ; y = y + direction
+      lda direction_ups,x : tay 
+                                        
+      lda (scan_ptr),y    
+      if a<>mydot then
+         if a<#ZERO_SCORE then exit sub         
+      end if           
+      inx
+      dec b            
+    loop until negative
+                        
+    ;
+    ; here the row is unbroken and scan_count 
+    ; holds how many dots there are.
+    ; now we can do accumulate process
+    ;
+    
+    ldx save_x    ; retrieves previously saved x 
+    ld b,#3
+    
+    do
+      ; y = y + direction
+      lda direction_ups,x : tay 
+                            
+      lda (scan_ptr),y
+      if a>=#ZERO_SCORE then
+         clc
+         adc #1   
+         sta (scan_ptr),y
+      end if      
+      inx
+      dec b            
+    loop until negative       
+end sub
+
+; ???
+sub EraseAround()    
+    ; loads the scan pointer with top-left corner -1,-1
+    ld16 scan_ptr, #[VIDEO_MEMORY+[BOARD_START_ROW-1]*SCREEN_COLS+BOARD_START_COL-1]
+    
+    for scan_row=#BOARD_START_ROW to #BOARD_END_ROW    
+       for scan_col=#BOARD_START_COL to #BOARD_END_COL       
+           jsr EraseSingle
+           inc16 scan_ptr
+       next       
+       add16 scan_ptr, #SCREEN_COLS-BOARD_COL_SIZE
+    next
+    rts
+    
+EraseSingle:       
+    ldx #8
+    do
+       lda erasetable,x
+       tay            
+       
+       lda (scan_ptr),y
+       if a=#NOUGHT then exit sub
+       if a=#CROSS then exit sub
+                              
+       dex
+    loop until negative
+    
+    ldy #[SCREEN_COLS+1]
+    lda #GRID    
+    sta (scan_ptr),y           
+end sub
+
+sub PickBestMove()
+    ld best_score, #0   
+    for x=#BOARD_START_ROW to #BOARD_END_ROW
+        for y=#BOARD_START_COL to #BOARD_END_COL            
+            stx row
+            sty col
+            jsr getchar            
+            if a>=best_score then
+               sta best_score
+               ld best_row, row
+               ld best_col, col              
+            end if
+            ldx row
+            ldy col            
+        next
+    next
+    ld row, best_row
+    ld col, best_col            
+end sub
+
+; ======
+; TABLES
+; ======
+
+; E,SE,S,SW directions for 6-sized patterns 
+direction_6 byte 0,[SCREEN_COLS*0]+1,[SCREEN_COLS*0]+2,[SCREEN_COLS*0]+3,[SCREEN_COLS*0]+4,[SCREEN_COLS*0]+5
+            byte 0,[SCREEN_COLS*1]+1,[SCREEN_COLS*2]+2,[SCREEN_COLS*3]+3,[SCREEN_COLS*4]+4,[SCREEN_COLS*5]+5
+            byte 0,[SCREEN_COLS*1]+0,[SCREEN_COLS*2]+0,[SCREEN_COLS*3]+0,[SCREEN_COLS*4]+0,[SCREEN_COLS*5]+0
+            byte 0,[SCREEN_COLS*1]-1,[SCREEN_COLS*2]-2,[SCREEN_COLS*3]-3,[SCREEN_COLS*4]-4,[SCREEN_COLS*5]-5
+
+; all 8 directions in the arithmetic scanning routine (0 position is implicit)
+; it's actually split into 2 tables (ups and downs) because a single one
+; wound cross the 256 bytes boundary
+
+direction_ups   byte [SCREEN_COLS*3]+4,[SCREEN_COLS*2]+4,[SCREEN_COLS*1]+4,[SCREEN_COLS*0]+4
+                byte [SCREEN_COLS*3]+5,[SCREEN_COLS*2]+6,[SCREEN_COLS*1]+7,[SCREEN_COLS*0]+8
+                byte [SCREEN_COLS*4]+5,[SCREEN_COLS*4]+6,[SCREEN_COLS*4]+7,[SCREEN_COLS*4]+8
+                byte [SCREEN_COLS*4]+3,[SCREEN_COLS*4]+2,[SCREEN_COLS*4]+1,[SCREEN_COLS*4]
+                byte [SCREEN_COLS*3]+3,[SCREEN_COLS*2]+2,[SCREEN_COLS*1]+1,0
+
+direction_downs byte [SCREEN_COLS*1]+5,[SCREEN_COLS*2]+6,[SCREEN_COLS*3]+7,[SCREEN_COLS*4]+8
+                byte [SCREEN_COLS*1]+4,[SCREEN_COLS*2]+4,[SCREEN_COLS*3]+4,[SCREEN_COLS*4]+4
+                byte [SCREEN_COLS*1]+3,[SCREEN_COLS*2]+2,[SCREEN_COLS*3]+1,[SCREEN_COLS*4]+0
+
+; all y-index positions around a given location, used to find 
+; wether a cell is surrounded by dots characters or is instead empty
+
+erasetable byte [SCREEN_COLS*0],[SCREEN_COLS*0]+1,[SCREEN_COLS*0]+2
+           byte [SCREEN_COLS*1],[SCREEN_COLS*1]+1,[SCREEN_COLS*1]+2
+			  byte [SCREEN_COLS*2],[SCREEN_COLS*1]+1,[SCREEN_COLS*1]+2
+
+/*
+   ; change border to show activity
+   ;#ifdef VIC20 then poke 36879, #26
+   ;#ifdef C64   then poke 53280, #2
+   ;#ifdef C16   then poke 65305, #227
+
+   ; change border to show activity    
+   ;#ifdef VIC20 then poke 36879, #27
+   ;#ifdef C64   then poke 53280, #3
+   ;#ifdef C16   then poke 65305, #228
+
+   ;#ifdef VIC20 then poke 36879, #31
+   ;#ifdef C64   then poke 53280, #7
+   ;#ifdef C16   then poke 65305, #230
+
+   ;#ifdef VIC20 then poke 36879, #28
+   ;#ifdef C64   then poke 53280, #4
+   ;#ifdef C16   then poke 65305, #226
+
+   ; #ifdef VIC20 then poke 36879, #30
+   ; #ifdef C64   then poke 53280, #6
+   ; #ifdef C16   then poke 65305, #225       
+
+   ;#ifdef VIC20 then poke 36879, #29
+   ;#ifdef C64   then poke 53280, #5
+   ;#ifdef C16   then poke 65305, #229
+*/
