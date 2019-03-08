@@ -12,7 +12,7 @@ and improving the AI.
 
 You can download the `.prg` file for:
 
-- [VIC-20](gomoku_vic20.prg) (unexpanded VIC)
+- [VIC-20](gomoku_vic20.prg) (unexpanded)
 - [Commodore 64](gomoku_c64.prg)
 - [Commodore 16 / Plus 4](gomoku_c16.prg)
 
