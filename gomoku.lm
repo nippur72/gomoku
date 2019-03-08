@@ -1,6 +1,5 @@
 // TODO two players mode?
 // TODO check/fine tune AI
-// TODO readme get old xoomer page
 // TODO remove constants in computer_*.lm
 // TODO alternate graphics 
 // TODO separate map
@@ -13,9 +12,6 @@
 ;
 ; Written by Antonino Porcino 
 ; (aka Nippur72) in May, 2008
-;
-; iz8bly@yahoo.it
-; http://xoomer.alice.it/aporcino
 ;
 ; Refreshed in 2019
 ; https://github.com/nippur72/gomoku
