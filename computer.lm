@@ -1,14 +1,14 @@
 
-scan_ptr = FREE_ZP_3   ; scanning video pointer in scanning routines
-scan_row = FREE_ZP_4   ; scanning row 
-scan_col = FREE_ZP_5   ; scanning column
+const scan_ptr = FREE_ZP_3   ; scanning video pointer in scanning routines
+const scan_row = FREE_ZP_4   ; scanning row 
+const scan_col = FREE_ZP_5   ; scanning column
 
-save_y     = FREE_ZP_23   ; temporary used to save the y register in some scanning routines
-save_x     = FREE_ZP_24   ; temporary used to save the x register in some scanning routines
+const save_y   = FREE_ZP_23   ; temporary used to save the y register in some scanning routines
+const save_x   = FREE_ZP_24   ; temporary used to save the x register in some scanning routines
 
-y_free_cell = FREE_ZP_29
-y_free_cell_1 = FREE_ZP_30
-y_free_cell_2 = FREE_ZP_28  
+const y_free_cell   = FREE_ZP_29
+const y_free_cell_1 = FREE_ZP_30
+const y_free_cell_2 = FREE_ZP_28  
 
 const ZERO_SCORE = $30     ; minimum value for zero score ($30 = 48 = "0") 
 
