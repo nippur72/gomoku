@@ -1,4 +1,3 @@
-// TODO check no winners full board
 // TODO two players mode?
 // TODO check/fine tune AI
 // TODO readme get old xoomer page
@@ -87,7 +86,7 @@ const REVERSE_GRID   = $0    ;
 const BOARD_ROW_SIZE = 16
 const BOARD_COL_SIZE = 16
 
-const BOARD_NUL_CELLS = BOARD_ROW_SIZE * BOARD_COL_SIZE
+const BOARD_NUM_CELLS = BOARD_ROW_SIZE * BOARD_COL_SIZE
 
 const FRAME_START_ROW = [SCREEN_ROWS-[BOARD_ROW_SIZE+2]]/2 
 const FRAME_START_COL = [SCREEN_COLS-[BOARD_COL_SIZE+2]]/2
@@ -134,10 +133,11 @@ const FREE_ZP_27 = 66
 const FREE_ZP_28 = 118
 const FREE_ZP_29 = 151
 const FREE_ZP_30 = 148
+const FREE_ZP_31 = 159
 
 const b = FREE_ZP_8
 
-const turns  = FREE_ZP_9  ; counts turns in a match
+const turns  = FREE_ZP_9  ; and also FREE_ZP31 because it's a word. counts turns in a match
                 
 const row    = FREE_ZP_10 ; used by putchar() and getchar(). row and col are 
 const col    = FREE_ZP_11 ; screen coordinates (0-based) and char is the character  
@@ -165,27 +165,36 @@ const KEY_RETURN = 13
 
 ; main game loop
 
+const MAX_TURNS = BOARD_NUM_CELLS + 1
+
 sub main()	     
    call InitVic
    call IntroScreen   
    call DrawBoard
    call CenterHumanCursor         
-
-   ld turns, #0     ; turn counter 
+   
+   ld16 turns, #0   ; turn counter 
    ld winner, #0    ; none is winning
 
    ; game loop
-   do
-      inc turns      
+   do      
+      inc16 turns
+
+      ; check if no moves left and none wins
+      cmp16 turns, #MAX_TURNS
+      if equal then exit do
+
       call HumanMove    : if winner is not zero then exit do      
       call ComputerMove : if winner is not zero then exit do        
    loop while zero
 
-   ; game ended, show winning pattern and wait key
-   do
-      call HighlightWinningMove
-      jsr GETIN       
-   loop while a<>#KEY_RETURN
+   if winner <> #0 then
+      ; game ended, show winning pattern and wait key
+      do
+         call HighlightWinningMove
+         jsr GETIN       
+      loop while a<>#KEY_RETURN
+   end if
         
    call EndingScreen
       

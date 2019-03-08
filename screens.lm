@@ -100,11 +100,13 @@ end sub
 ;                         0123456789012345678901
 scritta_vic20:    byte     "VIC*20 HAS WON IN",0
 scritta_you:      byte      "YOU HAVE WON IN",0
-scritta_moves:    byte            " MOVES",0
+scritta_none:     byte      "NONE HAS WON IN",0
+scritta_moves:    byte            " TURNS",0
 scritta_pressany: byte       "PRESS ANY KEY",0
 
 scritta_vic20_pos    = VIDEO_MEMORY +  9 * SCREEN_COLS + 2
 scritta_you_pos      = VIDEO_MEMORY +  9 * SCREEN_COLS + 3
+scritta_none_pos     = VIDEO_MEMORY +  9 * SCREEN_COLS + 3
 scritta_moves_pos    = VIDEO_MEMORY + 11 * SCREEN_COLS + 7
 scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 4
 #endif
@@ -113,11 +115,13 @@ scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 4
 ;                         0123456789012345678901
 scritta_vic20:    byte      "C*64 HAS WON IN",0
 scritta_you:      byte      "YOU HAVE WON IN",0
-scritta_moves:    byte            " MOVES",0
+scritta_none:     byte      "NONE HAS WON IN",0
+scritta_moves:    byte            " TURNS",0
 scritta_pressany: byte       "PRESS ANY KEY",0
 
 scritta_vic20_pos    = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
 scritta_you_pos      = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
+scritta_none_pos     = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
 scritta_moves_pos    = VIDEO_MEMORY + 11 * SCREEN_COLS + 17-1
 scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 14-1
 #endif
@@ -126,12 +130,14 @@ scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 14-1
 ;                         0123456789012345678901
 scritta_vic20:    byte      "C*16 HAS WON IN",0
 scritta_you:      byte      "YOU HAVE WON IN",0
-scritta_moves:    byte            "MOVES",0
+scritta_none:     byte      "NONE HAS WON IN",0
+scritta_moves:    byte            "TURNS",0
 scritta_moves2:   byte            " ",0
 scritta_pressany: byte       "PRESS ANY KEY",0
 
 scritta_vic20_pos    = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
 scritta_you_pos      = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
+scritta_none_pos     = VIDEO_MEMORY +  9 * SCREEN_COLS + 13-1
 scritta_moves_pos    = VIDEO_MEMORY + 11 * SCREEN_COLS + 17-1
 scritta_moves2_pos   = VIDEO_MEMORY + 11 * SCREEN_COLS + 17-2
 scritta_pressany_pos = VIDEO_MEMORY + 21 * SCREEN_COLS + 14-1
@@ -150,10 +156,15 @@ sub EndingScreen()
    #ifdef C64   then color #6
    #ifdef C16   then color #54
 
-   if winner = #CROSS then
-      print scritta_you
+   lda winner
+   if zero then
+      print scritta_none
    else
-      print scritta_vic20
+      if a = #CROSS then
+         print scritta_you
+      else
+         print scritta_vic20
+      end if
    end if
     
    #ifdef VIC20 || C64
