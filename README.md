@@ -36,4 +36,4 @@ Press F1 to start and then simply use the cursor keys to move on the board and s
 
 ## Rules of the game
 
-Go-Moku is a board game with very simple rules. Two players move in turn by writing their own sign ('X' and 'O') on a free square of the board, with 'X' starting the game. The player who first connects five consecutive squares with his sign (horizontally, vertically or diagonally) wins the game. If the board is completely filled, and no one has five-in-a-row, the game is drawn.
+Go-Moku is a board game with very simple rules. Two players move in turn by writing their own sign (`X` and `O`) on a free square of the board, with `X` starting the game. The player who first connects five consecutive squares with his sign (horizontally, vertically or diagonally) wins the game. If the board is completely filled, and no one has five-in-a-row, the game is drawn.
